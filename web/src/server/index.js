@@ -1,7 +1,6 @@
 var init = require('./init.js');
 var express = require('express');
 var _ = require('lodash');
-var hoge = 'test'; 
 var Settings = require('./lib/Settings');
 
 var spika = function(app,io,options){
