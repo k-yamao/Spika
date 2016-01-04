@@ -5,6 +5,8 @@ var Const = require('../const.js');
 var DatabaseManager = {
     
     messageModel:null,
+    peopleModel:null,
+    counterModel:null,
     userModel:null,
     fileModel:null,
     
@@ -29,7 +31,8 @@ var DatabaseManager = {
 		        // Defining a schema
 
 		        
-
+	        	self.peopleModel = require('../Models/PeopleModel').init();
+	        	self.counterModel = require('../Models/CounterModel').init();
                 self.messageModel = require('../Models/MessageModel').init();
 		        self.userModel = require('../Models/UserModel').init();
 		        self.fileModel = require('../Models/FileModel').init();

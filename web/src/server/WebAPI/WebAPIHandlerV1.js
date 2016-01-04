@@ -32,6 +32,7 @@ var WebAPIHandler ={
         */
         
         // HTTP Routes
+        require('./PeopleHandler').attach(app);
         require('./LoginHandler').attach(app);
         require('./TempHandler').attach(app);
         require('./MessageListHandler').attach(app);
