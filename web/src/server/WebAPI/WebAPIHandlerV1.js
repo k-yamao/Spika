@@ -1,3 +1,6 @@
+var express = require('express');
+var router = express.Router();
+
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -12,7 +15,7 @@ var formidable = require('formidable');
 var fs = require('fs-extra');
 var path = require('path');
 var mime = require('mime');
-var SocketAPIHandler = require('../SocketAPI/SocketAPIHandler');
+
 var Settings = require("../lib/Settings");
 
 var WebAPIHandler ={
@@ -30,25 +33,21 @@ var WebAPIHandler ={
           res.status(500).send('Something broke!');
         });
         */
-        
-        // HTTP Routes
-        require('./LoginHandler').attach(app);
-        require('./TempHandler').attach(app);
-        require('./MessageListHandler').attach(app);
-        require('./UserListHandler').attach(app);
-        require('./SendFileAsMessageHandler').attach(app);
-        require('./FileUploadHandler').attach(app);
-        require('./FileDownloadHandler').attach(app);
-        require('./PeopleHandler').attach(app);
 
-        app.get('/fail/sync', function(req, res) {
-           throw new Error('whoops');
-        });
-        app.get('/fail/async', function(req, res) {
-           process.nextTick(function() {
-              throw new Error('whoops');
-           });
-        });
+        // HTTP Routes
+        router.use("/people", require('./PeopleHandler'));
+        router.use("/user/login", require('./LoginHandler'));
+        router.use("/temp", require('./TempHandler'));
+        router.use("/message/list", require('./MessageListHandler'));
+        router.use("/message/latest", require('./LatestMessageListHandler').router);
+        router.use("/user/list", require('./UserListHandler'));
+        router.use("/message/sendFile", require('./SendFileAsMessageHandler'));
+        router.use("/file/upload", require('./FileUploadHandler'));
+        router.use("/file/download", require('./FileDownloadHandler'));
+        router.use("/test", require('./TestHandler'));
+        
+        WebAPIHandler.router = router;
+        app.use(Settings.options.urlPrefix + "/v1", router);
         
     }
 }

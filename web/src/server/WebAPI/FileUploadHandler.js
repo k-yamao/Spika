@@ -1,3 +1,5 @@
+var express = require('express');
+var router = express.Router();
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -21,7 +23,7 @@ var FileUploadHandler = function(){
 
 _.extend(FileUploadHandler.prototype,RequestHandlerBase.prototype);
 
-FileUploadHandler.prototype.attach = function(app){
+FileUploadHandler.prototype.attach = function(router){
         
     var self = this;
     
@@ -38,8 +40,8 @@ FileUploadHandler.prototype.attach = function(app){
      *     
      * @apiSuccessExample Success-Response:
         {
-            "success": 1,
-            "result": {
+            "code": 1,
+            "data": {
                 "file": {
                     "id": "55cdeba8a2d0956d24b421df",
                     "name": "Procijena.xlsx",
@@ -49,7 +51,7 @@ FileUploadHandler.prototype.attach = function(app){
             }
         }
     */
-    app.post(this.path('/file/upload'),function(request,response){
+    router.post('',function(request,response){
         
         var form = new formidable.IncomingForm();
         
@@ -93,14 +95,21 @@ FileUploadHandler.prototype.attach = function(app){
                 
                 form.parse(request, function(err, fields, files) {
             
-                    var tempPath = files.file.path;
-                    var fileName = files.file.name;
-            
-                    var destPath = Settings.options.uploadDir;
+                    if(!files.file){
+                        
+                        self.successResponse(response,Const.resCodeFileUploadNoFile);
+                        return; 
+                        
+                    }else{
                     
-                    console.log(files);
-                    
-                    done(err,files.file);
+                        var tempPath = files.file.path;
+                        var fileName = files.file.name;
+                
+                        var destPath = Settings.options.uploadDir;
+                        
+                        done(err,files.file);
+
+                    }
                     
                 });
                 
@@ -215,13 +224,12 @@ FileUploadHandler.prototype.attach = function(app){
             function (err, result) {
                 
                 if(err){
+
                     self.errorResponse(
                         response,
-                        Const.httpCodeSucceed,
-                        Const.responsecodeParamError,
-                        Utils.localizeString("Upload Failed"),
-                        true
+                        Const.httpCodeSeverError
                     );
+                
                 }else{
                                             
                     var responseJson = {
@@ -242,7 +250,8 @@ FileUploadHandler.prototype.attach = function(app){
                         };
                     }
                     
-                    self.successResponse(response,responseJson);
+                    self.successResponse(response,Const.responsecodeSucceed,
+                        responseJson);
                 }
                      
             }
@@ -251,6 +260,5 @@ FileUploadHandler.prototype.attach = function(app){
     });
 
 }
-
-
-module["exports"] = new FileUploadHandler();
+new FileUploadHandler().attach(router);
+module["exports"] = router;

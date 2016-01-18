@@ -1,3 +1,5 @@
+var express = require('express');
+var router = express.Router();
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -23,17 +25,17 @@ var PeopleHandler = function(){
 
 _.extend(PeopleHandler.prototype,RequestHandlerBase.prototype);
 
-PeopleHandler.prototype.attach = function(app){
+PeopleHandler.prototype.attach = function(router){
         
     var self = this;
 
     /**
-     * @api {get} /user/list/:roomID  Get List of Users in room
-     * @apiName Get User List
+     * @api {get} /people/list/:roomID  Get List of Users in room
+     * @apiName Get People List
      * @apiGroup WebAPI
      * @apiDescription Get list of users who are currently in the room
 
-     * @apiParam {String} roomID ID of the room
+     * @apiParam {String} peopleID
      *
      *     
      * @apiSuccessExample Success-Response:
@@ -49,7 +51,7 @@ PeopleHandler.prototype.attach = function(app){
 		    }
 		}
     */
-    app.get(this.path('/people/:peopleID'),function(request,response){
+    router.get('/:peopleID',function(request,response){
         var peopleID = request.params.peopleID;
 
         PeopleModel.findPeopleById(peopleID,function (err,people) {
@@ -76,7 +78,7 @@ PeopleHandler.prototype.attach = function(app){
         
     });
     
-    app.post(this.path('/people/login'),function(request,response){
+    router.post('/login',function(request,response){
         var mail     = request.body.mail;
         var password = request.body.password;
         
@@ -118,7 +120,7 @@ PeopleHandler.prototype.attach = function(app){
     
 
     /**
-     * @api {post} /user/login Get api token
+     * @api {post} /people/login Get api token
      * @apiName Login
      * @apiGroup WebAPI
      * @apiDescription Login to the room specified in request, and get token for the room.
@@ -146,7 +148,7 @@ PeopleHandler.prototype.attach = function(app){
 				}-
 			}
     */
-     app.post(this.path('/people'),function(request,response){
+    router.post('/',function(request,response){
 		var mail     = request.body.mail;    
 		var password = request.body.password;
 		var nicname  = request.body.nicname;
@@ -247,8 +249,7 @@ PeopleHandler.prototype.attach = function(app){
         
     });
 
-
 }
 
-
-module["exports"] = new PeopleHandler();
+new PeopleHandler().attach(router);
+module["exports"] = router;

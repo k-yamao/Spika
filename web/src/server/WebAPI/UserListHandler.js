@@ -1,3 +1,5 @@
+var express = require('express');
+var router = express.Router();
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -20,7 +22,7 @@ var UserListHandler = function(){
 
 _.extend(UserListHandler.prototype,RequestHandlerBase.prototype);
 
-UserListHandler.prototype.attach = function(app){
+UserListHandler.prototype.attach = function(router){
         
     var self = this;
 
@@ -35,8 +37,8 @@ UserListHandler.prototype.attach = function(app){
      *     
      * @apiSuccessExample Success-Response:
 {
-  "success": 1,
-  "result": [
+  "code": 1,
+  "data": [
     {
       "userID": "test",
       "name": "test",
@@ -54,17 +56,24 @@ UserListHandler.prototype.attach = function(app){
   ]
 }
     */
-    app.get(this.path('/user/list/:roomID'),function(request,response){
+    router.get('/:roomID',function(request,response){
+      
         var roomID = request.params.roomID;
         var users = UsersManager.getUsers(roomID);
-
         
-        self.successResponse(response,users);
+        if(_.isEmpty(roomID)){
+          self.successResponse(response,Const.resCodeUserListNoRoomID);
+          return;
+        }
+        
+        self.successResponse(response,
+          Const.responsecodeSucceed,
+          Utils.stripPrivacyParamsFromArray(users));
         
     });
 
 
 }
 
-
-module["exports"] = new UserListHandler();
+new UserListHandler().attach(router);
+module["exports"] = router;

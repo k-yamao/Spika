@@ -1,3 +1,5 @@
+var express = require('express');
+var router = express.Router();
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -15,13 +17,16 @@ var mime = require('mime');
 var SocketAPIHandler = require('../SocketAPI/SocketAPIHandler');
 var Settings = require("../lib/Settings");
 
+var SendMessageLogic = require('../Logics/SendMessage');
+
+
 var TempHandler = function(){
     
 }
 
 _.extend(TempHandler.prototype,RequestHandlerBase.prototype);
 
-TempHandler.prototype.attach = function(app){
+TempHandler.prototype.attach = function(router){
         
     var self = this;
 
@@ -41,11 +46,11 @@ TempHandler.prototype.attach = function(app){
      *     
      * @apiSuccessExample Success-Response:
         {
-          "success": 1,
-          "result": 'ok'
+          "code": 1,
+          "data": 'ok'
         }
     */
-    app.post(this.path('/message/sendFile'),function(request,response){
+    router.post('',function(request,response){
         
         var form = new formidable.IncomingForm();
                             
@@ -54,11 +59,39 @@ TempHandler.prototype.attach = function(app){
             function (done) {
                 
                 form.parse(request, function(err, fields, files) {
-            
+                    
+                    // validation
+                    if(_.isEmpty(files.file)){
+                        
+                        self.successResponse(response,Const.resCodeSendMessageNoFile);
+                        return; 
+                    };
+
+                    if(_.isEmpty(fields.roomID)){
+                        
+                        self.successResponse(response,Const.resCodeSendMessageNoRoomID);
+                        return; 
+                    };
+ 
+                    if(_.isEmpty(fields.userID)){
+                        
+                        self.successResponse(response,Const.resCodeSendMessageNoUserID);
+                        return; 
+                    };
+ 
+  
+                    if(_.isEmpty(fields.type)){
+                        
+                        self.successResponse(response,Const.resCodeSendMessageNoType);
+                        return; 
+                    };
+                                                                   
+                    
                     var tempPath = files.file.path;
                     var fileName = files.file.name;
             
                     var destPath = Settings.options.uploadDir;
+                    
                     
                     // search user
                     done(err,{file:files.file,fields:fields});
@@ -196,11 +229,9 @@ TempHandler.prototype.attach = function(app){
                     };
                 }
                 
-                                        
-                SocketAPIHandler.sendNewMessage(result.fields.userID,param,function(){
-                    
+
+                SendMessageLogic.execute(result.fields.userID,param,function(){
                     done(null,result);
-                    
                 });
 
             }
@@ -219,4 +250,5 @@ TempHandler.prototype.attach = function(app){
 }
 
 
-module["exports"] = new TempHandler();
+new TempHandler().attach(router);
+module["exports"] = router;

@@ -1,3 +1,5 @@
+var express = require('express');
+var router = express.Router();
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -20,20 +22,21 @@ var TempHandler = function(){
 
 _.extend(TempHandler.prototype,RequestHandlerBase.prototype);
 
-TempHandler.prototype.attach = function(app){
+TempHandler.prototype.attach = function(router){
         
     var self = this;
 
     //Login data (requires body-parser)
-    app.get(this.path('/temp'),function(request,response){
+    router.get('',function(request,response){
         
-        self.successResponse(response,{
-            ok: 'ok'
+        self.successResponse(response,Const.responsecodeSucceed,{
+            param1:1,
+            param2:2
         });
         
     });
 
 }
 
-
-module["exports"] = new TempHandler();
+new TempHandler().attach(router);
+module["exports"] = router;

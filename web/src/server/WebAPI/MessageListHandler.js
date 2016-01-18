@@ -1,3 +1,5 @@
+var express = require('express');
+var router = express.Router();
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -22,7 +24,7 @@ var MessageListHandler = function(){
 
 _.extend(MessageListHandler.prototype,RequestHandlerBase.prototype);
 
-MessageListHandler.prototype.attach = function(app){
+MessageListHandler.prototype.attach = function(router){
         
     var self = this;
 
@@ -42,8 +44,8 @@ MessageListHandler.prototype.attach = function(app){
 {
 
 {
-    "success": 1,
-    "result": [
+    "code": 1,
+    "data": [
         {
             "__v": 0,
             "_id": "55d2d194caf997b543836fc8",
@@ -94,10 +96,18 @@ MessageListHandler.prototype.attach = function(app){
 
     */
     
-    app.get(this.path('/message/list/:roomID/:lastMessageID'),function(request,response){
-        
+    router.get('/:roomID/:lastMessageID',function(request,response){
+                
         var roomID = request.params.roomID;
         var lastMessageID = request.params.lastMessageID;
+        
+        if(Utils.isEmpty(roomID)){
+            
+            self.successResponse(response,Const.resCodeMessageListNoRoomID);
+                
+            return;
+            
+        }
         
         async.waterfall([
         
@@ -120,27 +130,28 @@ MessageListHandler.prototype.attach = function(app){
                 
             }
         ],
-            function (err, result) {
+            function (err, data) {
                 
                 if(err){
+
                     self.errorResponse(
                         response,
-                        Const.httpCodeSucceed,
-                        Const.responsecodeParamError,
-                        Utils.localizeString(err),
-                        true
+                        Const.httpCodeSeverError
                     );
+                
                 }else{
-                    self.successResponse(response,result);
+                    
+                    self.successResponse(response,Const.responsecodeSucceed,{messages:data});
+                    
                 }
                      
             }
+            
         );
         
     });
-    
 
 }
 
-
-module["exports"] = new MessageListHandler();
+new MessageListHandler().attach(router);
+module["exports"] = router;

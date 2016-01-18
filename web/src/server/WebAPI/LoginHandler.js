@@ -1,3 +1,10 @@
+var express = require('express');
+var router = express.Router();
+var async = require('async');
+var formidable = require('formidable');
+var fs = require('fs-extra');
+var path = require('path');
+var mime = require('mime');
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
@@ -6,15 +13,12 @@ var RequestHandlerBase = require("./RequestHandlerBase");
 var UsersManager = require("../lib/UsersManager");
 var DatabaseManager = require("../lib/DatabaseManager");
 var Utils = require("../lib/Utils");
-var Const = require("../const");
-var async = require('async');
-var formidable = require('formidable');
-var fs = require('fs-extra');
-var path = require('path');
-var mime = require('mime');
 var SocketAPIHandler = require('../SocketAPI/SocketAPIHandler');
 var UserModel = require("../Models/UserModel");
 var Settings = require("../lib/Settings");
+var Const = require("../const");
+
+var LoginLogic = require("../Logics/Login");
 
 var LoginHandler = function(){
     
@@ -22,7 +26,7 @@ var LoginHandler = function(){
 
 _.extend(LoginHandler.prototype,RequestHandlerBase.prototype);
 
-LoginHandler.prototype.attach = function(app){
+LoginHandler.prototype.attach = function(router){
         
     var self = this;
 
@@ -41,142 +45,53 @@ LoginHandler.prototype.attach = function(app){
      * @apiSuccess {String} User Model of loginned user
      *     
      * @apiSuccessExample Success-Response:
-            {
-              "success": 1,
-              "result": {
-                "token": "v3S8mMex95HFJmWm5io5RhgW",
-                "user": {
-                  "_id": "55cde8271d8ccb18230fe20f",
-                  "userID": "testuser",
-                  "name": "testuser",
-                  "avatarURL": "http://localhost:8080/img/noavatar.png",
-                  "token": "5pMroCXBQzpxxUElGusLOzXp",
-                  "created": 1439557671981,
-                  "__v": 0
-                }
-              }
-            }
+
+{
+	code: 1,
+	data: {
+		token: 'FPzdinKSETyXrx0zoxZVYoVt',
+		user: {
+			_id: '564b128a94b8f880877eb47f',
+			userID: 'test',
+			name: 'test',
+			avatarURL: 'test',
+			token: 'zJd0rlkS6OWk4mBUDTL5Eg5U',
+			created: 1447760522576,
+			__v: 0
+		}
+	}
+}
+
     */
-     app.post(this.path('/user/login'),function(request,response){
-        
-        var name = request.body.name;
-        var avatarURL = request.body.avatarURL;
-        var roomID = request.body.roomID;
-        var userID = request.body.userID;
-                   
-        if(Utils.isEmpty(name)){
-            
-            self.errorResponse(
-                response,
-                Const.httpCodeSucceed,
-                Const.responsecodeParamError,
-                Utils.localizeString("Please specify name."),
-                false
-            );
-        
-            return;
-            
-        }
-        
-        if(Utils.isEmpty(avatarURL)){
-            avatarURL = Settings.options.noavatarImg;
-        }
-        
-        if(Utils.isEmpty(roomID)){
-        
-            self.errorResponse(
-                response,
-                Const.httpCodeSucceed,
-                Const.responsecodeParamError,
-                Utils.localizeString("Please specify room id."),
-                false
-            );
-            
-            return;
-            
-        }
-        
-        if(Utils.isEmpty(userID)){
-        
-            self.errorResponse(
-                response,
-                Const.httpCodeSucceed,
-                Const.responsecodeParamError,
-                Utils.localizeString("Please specify user id."),
-                false
-            );
-            
-            return;
-            
-        }
-        
-        // create token
-        var token = Utils.randomString(24);
-        
-        // check existance
-                    
-        UserModel.findUserbyId(userID,function (err,user) {
-                      
-            if(user == null){
-            
-                // save to database
-                var newUser = new DatabaseManager.userModel({
-                    userID: userID,
-                    name: name,
-                    avatarURL: avatarURL,
-                    token: token,
-                    created: Utils.now()
-                });
-
-                newUser.save(function(err,user){
+    router.post('/',function(request,response){
                 
-                    if(err) throw err;
-            
-                    self.successResponse(response,{
-                        token: token,
-                        user: user
-                    });
-            
-                });
+        LoginLogic.execute(request.body,function(result){
 
-            } else {
-                
+            self.successResponse(response,Const.responsecodeSucceed,{
+                token: result.token,
+                user: result.user
+            });
             
-                user.update({
-                    name: name,
-                    avatarURL: avatarURL,
-                    token: token
-                },{},function(err,userResult){
-                
-                    if(err){
-                    
-                        self.errorResponse(
-                            response,
-                            Const.httpCodeSucceed,
-                            Const.responsecodeParamError,
-                            Utils.localizeString(err),
-                            true
-                        );
-                        
-                    }else{
-                    
-                        self.successResponse(response,{
-                            token: token,
-                            user: user
-                        });
-                        
-                    }                
-
+        },function(err,code){
             
-                });
-                                
+            if(err){
+                
+                self.errorResponse(
+                    response,
+                    Const.httpCodeSeverError
+                );
+                
+            }else{
+                
+                self.successResponse(response,code);
+                
             }
-              
+            
         });
         
     });
 
 }
 
-
-module["exports"] = new LoginHandler();
+new LoginHandler().attach(router);
+module["exports"] = router;
