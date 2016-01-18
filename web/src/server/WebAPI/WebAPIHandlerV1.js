@@ -32,7 +32,6 @@ var WebAPIHandler ={
         */
         
         // HTTP Routes
-        require('./PeopleHandler').attach(app);
         require('./LoginHandler').attach(app);
         require('./TempHandler').attach(app);
         require('./MessageListHandler').attach(app);
@@ -40,6 +39,7 @@ var WebAPIHandler ={
         require('./SendFileAsMessageHandler').attach(app);
         require('./FileUploadHandler').attach(app);
         require('./FileDownloadHandler').attach(app);
+        require('./PeopleHandler').attach(app);
 
         app.get('/fail/sync', function(req, res) {
            throw new Error('whoops');

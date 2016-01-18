@@ -21,7 +21,15 @@ PeopleModel.prototype.init = function(){
         nicname : String,
         auth    : Number,
         token   : String,
-        created : Number
+        updated : Number,
+        created : Number,
+        imageURL: String,
+        sex     : String,
+        birthDay: String,
+        pref    : String,
+        city    : String,
+        appeal  : String,
+        fixedPhrase:String
     });
     this.model = mongoose.model(Settings.options.dbCollectionPrefix + "people", peopleSchema);
     return this.model;
