@@ -62,13 +62,13 @@ PeopleModel.prototype.getPeople = function(mail,callBack){
             
 }
 
-PeopleModel.prototype.findUsersbyInternalId = function(aryId,callBack){
+PeopleModel.prototype.findPeopleInternalId = function(aryId,callBack){
         
         var conditions = [];
-        aryId.forEach(function(userId){
+        aryId.forEach(function(id){
             
             conditions.push({
-                _id : userId 
+                _id : id
             });
             
         });

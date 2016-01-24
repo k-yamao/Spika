@@ -57,20 +57,11 @@ PeopleHandler.prototype.attach = function(router){
         PeopleModel.findPeopleById(peopleID,function (err,people) {
             
             if(people != null){
-				self.successResponse(response,{
-					token: token,
-					people: people
-				});
+            	
+            	self.setRes(response,Const.httpCodeSucceed,"get people success", people);
 
             } else {
-				
-				self.errorResponse(
-				    response,
-				    Const.httpCodeSucceed,
-				    Const.responsecodeParamError,
-				    Utils.localizeString(err),
-				    true
-				);
+            	self.setRes(response,Const.httpCodeFileNotFound,"not people", peopleID);
             }
               
         });
@@ -88,29 +79,13 @@ PeopleHandler.prototype.attach = function(router){
             if(people != null){
             	
             	if (people.password == password) {
-            		self.successResponse(response,{
-    					token: people.token,
-    					people: people
-    				});
+            		self.setRes(response,Const.httpCodeSucceed,"login success", people);
             	} else {
-            		self.errorResponse(
-        				    response,
-        				    Const.httpCodeSucceed,
-        				    Const.responsecodeParamError,
-        				    Utils.localizeString(err),
-        				    true
-            		);
+            		self.setRes(response,Const.httpCodeFileNotFound,"login fail", request.body);
             	}
 
             } else {
-				
-				self.errorResponse(
-				    response,
-				    Const.httpCodeSucceed,
-				    Const.responsecodeParamError,
-				    Utils.localizeString(err),
-				    true
-				);
+            	self.setRes(response,Const.httpCodeInternalServerError,"server error", err);
             }
               
         });
@@ -154,99 +129,60 @@ PeopleHandler.prototype.attach = function(router){
 		var nicname  = request.body.nicname;
 		var auth     = 0;
 
-		console.log(request.body);
-		
 		// メール必須チェック
         if(Utils.isEmpty(mail)){
-            self.errorResponse(
-                response,
-                Const.httpCodeSucceed,
-                Const.responsecodeParamError,
-                Utils.localizeString("Please specify mail."),
-                false
-            );
+        	self.setRes(response, Const.httpCodeBadRequest, "input error mail", request.body);
             return;
         }
 		// パスワード必須チェック
         if(Utils.isEmpty(password)){
-            self.errorResponse(
-                response,
-                Const.httpCodeSucceed,
-                Const.responsecodeParamError,
-                Utils.localizeString("Please specify password."),
-                false
-            );
+        	self.setRes(response, Const.httpCodeBadRequest, "input error password", request.body);
             return;
         }
 		// ニックネーム必須チェック
         if(Utils.isEmpty(nicname)){
-        
-            self.errorResponse(
-                response,
-                Const.httpCodeSucceed,
-                Const.responsecodeParamError,
-                Utils.localizeString("Please specify nicname."),
-                false
-            );
-            
+        	self.setRes(response, Const.httpCodeBadRequest, "input error nicname", request.body);
             return;
-            
         }
         
         // create token
         var token = Utils.randomString(24);
 
-        // check existance
+		// 登録ずみかチェックのためpeopleコレクションを取得してみる
         PeopleModel.getPeople(mail,function (err,people) {
-                      
-        	
+
             if(people == null){
             
             	// カウンターからピープルIDを取得する
-            	CounterModel.getNewId(function (err,people) {
+            	CounterModel.getNewId("peoples", function (err,counter) {
             		 if(err){            			 
-            			 self.errorResponse(
-                             response,
-                             Const.httpCodeSucceed,
-                             Const.responsecodeParamError,
-                             Utils.localizeString(err),
-                             true
-                         );
+            			 self.setRes(response,Const.httpCodeInternalServerError,"signup fail peopleID seq", err);
             			 
             		 } else {
 						// save to database
 						var newPeople = new DatabaseManager.peopleModel({
-						    peopleID: people.seq,
+						    peopleID: counter.seq,
 							mail    : mail,
 							password: password,
 						    nicname : nicname,
 						    auth    : auth,
-						    token: token,
+						    token   : token,
+						    updated : Utils.now(),
 						    created: Utils.now()
 						});
+						// 新規登録
 						newPeople.save(function(err,people){
 						    if(err) throw err;
-						    self.successResponse(response,{
-						        token: token,
-						        people: people
-						    });
+
+						    self.setRes(response,Const.httpCodeSucceed,"signup ok", people);
 						});
             		 }
             	});
             } else {
-                
-                self.errorResponse(
-                    response,
-                    Const.httpCodeSucceed,
-                    Const.responsecodeParamError,
-                    Utils.localizeString(err),
-                    true
-                );
-                                   
+            	
+            	self.setRes(response,Const.httpCodeAccepted,"signup fail. Signed people", people);
             }
-              
         });
-        
     });
 
 }

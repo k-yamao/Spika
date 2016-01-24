@@ -16,7 +16,7 @@ CounterModel.prototype.init = function(){
 	// Counterスキーマを定義
 	// Counterは_idで複数個管理できる。
 	var counterSchema = new mongoose.Schema({
-	 countID: Number,
+	 name: String,
 	 seq: Number
 	});
 	
@@ -24,9 +24,9 @@ CounterModel.prototype.init = function(){
     return this.model;
 }
 
-CounterModel.prototype.getNewId = function(callBack){
+CounterModel.prototype.getNewId = function(seqName, callBack){
 	this.model.findOneAndUpdate(
-		    {}, //Query
+		    { name : seqName}, //Query
 		    { $inc: {seq: 1 } }, //update document
 		    { new: true, upsert: true }, //options
 		    function (err, counter) {

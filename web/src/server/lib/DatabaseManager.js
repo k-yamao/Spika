@@ -6,6 +6,7 @@ var DatabaseManager = {
     
     messageModel:null,
     peopleModel:null,
+    boardModel:null,
     counterModel:null,
     userModel:null,
     fileModel:null,
@@ -58,6 +59,7 @@ var DatabaseManager = {
     	
     	
     	this.peopleModel = require('../Models/PeopleModel').init();
+    	this.boardModel = require('../Models/BoardModel').init();
     	this.counterModel = require('../Models/CounterModel').init();
         this.messageModel = require('../Models/MessageModel').init();
         this.userModel = require('../Models/UserModel').init();

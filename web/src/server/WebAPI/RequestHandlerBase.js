@@ -17,6 +17,18 @@ RequestHandlerBase.prototype.path = function(path){
     
 }
 
+// レスポンスを設定
+RequestHandlerBase.prototype.setRes = function(response, httpCode, message, datas){
+	// ステータスコード
+	response.status(httpCode); 
+	// レスポンス
+	response.json({
+        code : httpCode,
+        msg  : message,
+        data : datas,
+    });
+}
+
 RequestHandlerBase.prototype.errorResponse = function(
         response,
         httpCode){

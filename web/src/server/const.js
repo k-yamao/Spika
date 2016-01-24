@@ -10,8 +10,14 @@
     Const.responsecodeParamError = 2001;
     Const.responsecodeTokenError = 2100;
 
-    Const.httpCodeSucceed = 200;
-    Const.httpCodeFileNotFound = 404;
+    Const.httpCodeSucceed             = 200;
+    Const.httpCodeAccepted            = 203;
+    Const.httpCodeBadRequest          = 400;
+    Const.httpCodeFileNotFound        = 404;
+    Const.httpCodeInternalServerError = 500;
+    
+    
+    
     
     Const.messageTypeText = 1;
     Const.messageTypeFile = 2;
