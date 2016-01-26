@@ -19,17 +19,19 @@ PeopleModel.prototype.init = function(){
     	mail    : String,
     	password: String,
         nicname : String,
-        auth    : Number,
         token   : String,
-        updated : Number,
-        created : Number,
         imageURL: String,
         sex     : String,
         birthDay: String,
         pref    : String,
         city    : String,
         appeal  : String,
-        fixedPhrase:String
+        phrase  : String,
+        boards  : [],
+        auth    : Number,
+        loging  : Number,
+        updated : Number,
+        created : Number
     });
     this.model = mongoose.model(Settings.options.dbCollectionPrefix + "people", peopleSchema);
     return this.model;
@@ -62,6 +64,11 @@ PeopleModel.prototype.getPeople = function(mail,callBack){
             
 }
 
+/**
+ * ピープルオブジェクトも取得
+ * @param aryId
+ * @param callBack
+ */
 PeopleModel.prototype.findPeopleInternalId = function(aryId,callBack){
         
         var conditions = [];
