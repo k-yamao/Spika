@@ -71,7 +71,6 @@ BoardModel.prototype.findBoards = function(condition, limit,callBack){
             		deleted : condition.deleted,
             		created : {$lt:lastCreated}
             };
-            console.log(condition);
             var query = self.model.find(condition).sort({'created': 'desc'}).limit(limit);        
             
             query.exec(function(err,data){

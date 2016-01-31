@@ -1,12 +1,12 @@
 var _ = require('lodash');
 var Observer = require("node-observer");
 
-var UsersManager = require("../lib/UsersManager");
+var PeoplesManager = require("../lib/PeoplesManager");
 var DatabaseManager = require("../lib/DatabaseManager");
 var Utils = require("../lib/Utils");
 var Const = require("../const");
 var SocketHandlerBase = require("./SocketHandlerBase");
-var UserModel = require("../Models/UserModel");
+var PeopleModel = require("../Models/PeopleModel");
 var Settings = require("../lib/Settings");
 
 var LoginActionHandler = function(){
@@ -27,9 +27,9 @@ LoginActionHandler.prototype.attach = function(io,socket){
      * @apiParam {string} roomID Room ID
      *
      */
-    socket.on('login', function(param){
+    socket.on('signin', function(param){
                     
-        if(Utils.isEmpty(param.userID)){  
+        if(Utils.isEmpty(param.peopeID)){  
             socket.emit('socketerror', {code:Const.resCodeSocketLoginNoUserID});               
             return;
         }
@@ -41,20 +41,20 @@ LoginActionHandler.prototype.attach = function(io,socket){
         
                 
         socket.join(param.roomID);
-        io.of(Settings.options.socketNameSpace).in(param.roomID).emit('newUser', param);
+        io.of(Settings.options.socketNameSpace).in(param.roomID).emit('newPeople', param);
         Observer.send(this, Const.notificationNewUser, param);
 
         //save as message
-        UserModel.findUserbyId(param.userID,function (err,user) {
+        PeopleModel.findPeoplebyId(param.userID,function (err,people) {
             
-            if(_.isEmpty(user)){
+            if(_.isEmpty(people)){
                 
 
             }
             
             
-            UsersManager.addUser(param.userID,user.name,user.avatarURL,param.roomID,user.token);
-            UsersManager.pairSocketIDandUserID(param.userID,socket.id);            
+            PeoplesManager.addPeople(param.peopleID,people.name,people.avatarURL,param.roomID,people.token);
+            PeoplesManager.pairSocketIDandPeopleID(param.peopleID,socket.id);            
 
             if(Settings.options.sendAttendanceMessage){
             

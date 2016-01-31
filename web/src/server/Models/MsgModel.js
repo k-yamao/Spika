@@ -3,27 +3,26 @@ var _ = require('lodash');
 var Const = require('../const.js');
 var async = require('async');
 var Util = require('../lib/Utils');
-var UserModel = require('./UserModel');
+var PeopleModel = require('./PeopleModel');
 var Settings = require("../lib/Settings");
 
-var MessageModel = function(){
+var MsgModel = function(){
     
 };
 
-MessageModel.prototype.model = null;
+MsgModel.prototype.model = null;
 
-MessageModel.prototype.init = function(){
+MsgModel.prototype.init = function(){
 
     // Defining a schema
-    var messageSchema = new mongoose.Schema({
-        user: { type: mongoose.Schema.Types.ObjectId, index: true },
-        localID: { type: String, index: true },
-        userID: { type: String, index: true },
-        roomID: { type: String, index: true },
-        type: Number,
-        message: String,
-        image: String,
-        file: {
+    var msgSchema = new mongoose.Schema({
+        people  : { type: mongoose.Schema.Types.ObjectId, index: true },
+        peopleID: { type: String, index: true },
+        roomID  : { type: String, index: true },
+        type    : Number,
+        msg     : String,
+        image   : String,
+        file    : {
             file: {
                 id: mongoose.Schema.Types.ObjectId,
 	            name: String,
@@ -47,26 +46,26 @@ MessageModel.prototype.init = function(){
     });
 
     // add instance methods
-    messageSchema.methods.addSeenBy = function (user,callBack) {
+    msgSchema.methods.addSeenBy = function (people,callBack) {
         
         var seenBy = this.seenBy;
         var self = this;
 
-        var listOfUsers = [];
+        var listOfPeople = [];
         
         _.forEach(seenBy,function(seenObj){
                
-            listOfUsers.push(seenObj.user);
+            listOfPeople.push(seenObj.people);
             
         });
                     
-        if(_.indexOf(listOfUsers,user._id) == -1){
+        if(_.indexOf(listOfPeople,people._id) == -1){
 
-            seenBy.push({user:user._id,at:Util.now()});
+            seenBy.push({people:people._id,at:Util.now()});
             
             this.update({
                 seenBy: seenBy
-            },{},function(err,userResult){
+            },{},function(err,peopleResult){
             
                 if(callBack)
                     callBack(err,self);              
@@ -77,15 +76,15 @@ MessageModel.prototype.init = function(){
         }
 
     }
-    
-    this.model = mongoose.model(Settings.options.dbCollectionPrefix + "messages", messageSchema);
+
+    this.model = mongoose.model(Settings.options.dbCollectionPrefix + "msg", msgSchema);
     return this.model;
         
 }
 
-MessageModel.prototype.findMessagebyId = function(id,callBack){
+MsgModel.prototype.findMessagebyId = function(id,callBack){
 
-    this.model.findOne({ _id: id },function (err, user) {
+    this.model.findOne({ _id: id },function (err, people) {
 
         if (err) 
             console.error(err);
@@ -98,11 +97,11 @@ MessageModel.prototype.findMessagebyId = function(id,callBack){
             
 }
 
-MessageModel.prototype.findAllMessages = function(roomID,lastMessageID,callBack){
+MsgModel.prototype.findAllMessages = function(roomID,lastMsgID,callBack){
 
     var self = this;
 
-    this.model.findOne({ _id: lastMessageID },function (err, message) {
+    this.model.findOne({ _id: lastMsgID },function (err, message) {
 
         if (err) callBack(err,null)
         
@@ -132,17 +131,17 @@ MessageModel.prototype.findAllMessages = function(roomID,lastMessageID,callBack)
 
 }
 
-MessageModel.prototype.findMessages = function(roomID,lastMessageID,limit,callBack){
+MsgModel.prototype.findMessages = function(roomID,lastMsgID,limit,callBack){
             
-    if(lastMessageID != 0){
+    if(lastMsgID != 0){
         
         var self = this;
         
-        this.model.findOne({ _id: lastMessageID },function (err, message) {
+        this.model.findOne({ _id: lastMsgID },function (err, msg) {
 
             if (err) return console.error(err);
             
-            var lastCreated = message.created;
+            var lastCreated = msg.created;
             
             var query = self.model.find({
                 roomID:roomID,
@@ -180,42 +179,42 @@ MessageModel.prototype.findMessages = function(roomID,lastMessageID,limit,callBa
 
 }
 
-MessageModel.prototype.populateMessages = function(messages,callBack){
+MsgModel.prototype.populateMessages = function(msgs,callBack){
     
-    if(!_.isArray(messages)){
+    if(!_.isArray(msgs)){
         
-        messages = [messages];
+    	msgs = [msgs];
         
     }
     
     // collect ids
     var ids = [];
     
-    messages.forEach(function(row){
+    msgs.forEach(function(row){
         
         // get users for seeny too
         _.forEach(row.seenBy,function(row2){
-            ids.push(row2.user); 
+            ids.push(row2.people); 
         });
         
-        ids.push(row.user); 
+        ids.push(row.people); 
         
     });
     
     if(ids.length > 0){
     
-        UserModel.findUsersbyInternalId(ids,function(err,userResult){
+    	PeopleModel.findUsersbyInternalId(ids,function(err,peopleResult){
             
             var resultAry = [];
             
-            _.forEach(messages,function(messageElement,messageIndex,messagesEntity){
+            _.forEach(msgs,function(msgElement,msgIndex,msgsEntity){
                 
-                var obj = messageElement.toObject();
+                var obj = msgElement.toObject();
                 
                 _.forEach(userResult,function(userElement,userIndex){
                     
                     // replace user to userObj
-                    if(messageElement.user.toString() == userElement._id.toString()){
+                    if(msgElement.user.toString() == userElement._id.toString()){
                         obj.user = userElement.toObject();
                     }
 
@@ -224,7 +223,7 @@ MessageModel.prototype.populateMessages = function(messages,callBack){
                 var seenByAry = [];
                 
                 // replace seenby.user to userObj
-                _.forEach(messageElement.seenBy,function(seenByRow){
+                _.forEach(msgElement.seenBy,function(seenByRow){
                     
                     _.forEach(userResult,function(userElement,userIndex){
                         
@@ -254,10 +253,10 @@ MessageModel.prototype.populateMessages = function(messages,callBack){
         });
         
     }else{
-        callBack(null,messages);
+        callBack(null,msgs);
     }
     
 }
 
     
-module["exports"] = new MessageModel();
+module["exports"] = new MsgModel();

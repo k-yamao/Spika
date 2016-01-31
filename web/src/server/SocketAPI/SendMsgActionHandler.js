@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-var UsersManager = require("../lib/UsersManager");
+var PeoplesManager = require("../lib/PeoplesManager");
 var DatabaseManager = require("../lib/DatabaseManager");
 var Utils = require("../lib/Utils");
 var Const = require("../const");
@@ -11,7 +11,7 @@ var SendMsgActionHandler = function(){
     
 }
 
-var SendMessageLogic = require('../Logics/SendMessage');
+var SendMsgLogic = require('../Logics/SendMsg');
 
 var BridgeManager = require('../lib/BridgeManager');
 
@@ -27,7 +27,7 @@ SendMsgActionHandler.prototype.attach = function(io,socket){
      * @apiGroup Socket 
      * @apiDescription Send new message by socket
      * @apiParam {string} roomID Room ID
-     * @apiParam {string} userID User ID
+     * @apiParam {string} peopleID people ID
      * @apiParam {string} type Message Type. 1:Text 2:File 3:Location
      * @apiParam {string} message Message if type == 1
      * @apiParam {string} fileID File ID if type == 2
@@ -44,7 +44,7 @@ SendMsgActionHandler.prototype.attach = function(io,socket){
         }
 
 
-        if(Utils.isEmpty(param.userID)){
+        if(Utils.isEmpty(param.peopleID)){
             socket.emit('socketerror', {code:Const.resCodeSocketSendMessageNoUserId});
             return;
         }
@@ -70,15 +70,15 @@ SendMsgActionHandler.prototype.attach = function(io,socket){
         
         }
         
-        var userID = param.userID;
+        var peopleID = param.peopleID;
 
-        BridgeManager.hook('sendMessage',param,function(result){
+        BridgeManager.hook('sendMsg',param,function(result){
             
             if(result == null || result.canSend){
                 
-                var userID = param.userID;
+                var peopleID = param.peopleID;
             
-                SendMessageLogic.execute(userID,param,function(result){
+                SendMsgLogic.execute(peopleID,param,function(result){
                     
                     
                     

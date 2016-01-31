@@ -39,6 +39,8 @@ var WebAPIHandler ={
         router.use("/board", require('./BoardHandler'));
         router.use("/user/login", require('./LoginHandler'));
         router.use("/temp", require('./TempHandler'));
+        router.use("/msg/list", require('./MsgListHandler'));
+        router.use("/msg/latest", require('./LatestMsgListHandler').router);
         router.use("/message/list", require('./MessageListHandler'));
         router.use("/message/latest", require('./LatestMessageListHandler').router);
         router.use("/user/list", require('./UserListHandler'));

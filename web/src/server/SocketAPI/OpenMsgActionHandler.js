@@ -1,23 +1,23 @@
 var _ = require('lodash');
 var Observer = require("node-observer");
 
-var UsersManager = require("../lib/UsersManager");
+var PeoplesManager = require("../lib/PeoplesManager");
 var DatabaseManager = require("../lib/DatabaseManager");
 var Utils = require("../lib/Utils");
 var Const = require("../const");
 var SocketHandlerBase = require("./SocketHandlerBase");
-var UserModel = require("../Models/UserModel");
-var MessageModel = require("../Models/MessageModel");
+var PeopleModel = require("../Models/PeopleModel");
+var MsgModel = require("../Models/MsgModel");
 var async = require("async");
 var Settings = require("../lib/Settings");
 
-var OpenMessageActionHandler = function(){
+var OpenMsgActionHandler = function(){
     
 }
 
-_.extend(OpenMessageActionHandler.prototype,SocketHandlerBase.prototype);
+_.extend(OpenMsgActionHandler.prototype,SocketHandlerBase.prototype);
 
-OpenMessageActionHandler.prototype.attach = function(io,socket){
+OpenMsgActionHandler.prototype.attach = function(io,socket){
         
     var self = this;
     
@@ -135,7 +135,7 @@ OpenMessageActionHandler.prototype.attach = function(io,socket){
     
 
     
-    socket.on('openMessage', function(param){
+    socket.on('openMsg', function(param){
 
         if(Utils.isEmpty(param.userID)){
             socket.emit('socketerror', {code:Const.resCodeSocketOpenMessageNoUserID});               
@@ -155,11 +155,11 @@ OpenMessageActionHandler.prototype.attach = function(io,socket){
         var updatedMessages = [];
         
     
-        UserModel.findUserbyId(param.userID,function (err,user) {
+        PeopleModel.findPeopleById(param.userID,function (err,people) {
 
             async.forEach(param.messageIDs, function (messageID, callback){ 
 
-                MessageModel.findMessagebyId(messageID,function(err,message){
+                MsgModel.findMessagebyId(messageID,function(err,message){
                     
                     if(err) {
                         socket.emit('socketerror', {code:Const.resCodeSocketUnknownError});               
@@ -172,17 +172,17 @@ OpenMessageActionHandler.prototype.attach = function(io,socket){
                         return;
                     } 
                                         
-                    var listOfUsers = [];
+                    var listOfPeoples = [];
                     
                     _.forEach(message.seenBy,function(seenObj){
                            
-                        listOfUsers.push(seenObj.user.toString());
+                        listOfPeoples.push(seenObj.people.toString());
                         
                     });
                                         
-                    if(_.indexOf(listOfUsers,user._id.toString()) == -1){
+                    if(_.indexOf(listOfPeoples,people._id.toString()) == -1){
                         
-                        message.addSeenBy(user,function(err,messageUpdated){
+                        message.addSeenBy(people,function(err,messageUpdated){
                             
                             updatedMessages.push(messageUpdated);
                             callback(err);
@@ -202,7 +202,7 @@ OpenMessageActionHandler.prototype.attach = function(io,socket){
                 }
                     
                     
-                MessageModel.populateMessages(updatedMessages,function (err,messages) {
+                MsgModel.populateMessages(updatedMessages,function (err,messages) {
 
                     if(err) {
                         socket.emit('socketerror', {code:Const.resCodeSocketUnknownError});               
@@ -228,4 +228,4 @@ OpenMessageActionHandler.prototype.attach = function(io,socket){
 }
 
 
-module["exports"] = new OpenMessageActionHandler();
+module["exports"] = new OpenMsgActionHandler();

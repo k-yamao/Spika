@@ -20,9 +20,56 @@ var spika = function(app,io,options){
     
     var BridgeManager = require('./lib/BridgeManager');
     BridgeManager.init();
-    
-}
 
+    // define custome funcitons
+    this.getOnlineUsersByRoomId = function(roomId){
+        var UsersManager = require('./lib/UsersManager');
+        return UsersManager.getUsers(roomId);    
+    };
+
+    // define custome funcitons
+    this.getOnlinePeoplesByRoomId = function(roomId){
+        var PeoplesManager = require('./lib/PeoplesManager');
+        return PeoplesManager.getPeoples(roomId);    
+    };
+
+    this.loginToSpika = function(user,roomId,callBack){
+        
+        var LoginLogic = require("./Logics/Login");
+
+        LoginLogic.execute(user,function(err,loginResult){
+            
+            if(err){
+                if(callBack) callBack(false);
+            }else{
+                                       
+                if(callBack)
+                    callBack({
+                        ok: true,
+                        message : "test"
+                    });
+                   
+            }
+            
+        });        
+        
+    };
+
+
+    this.sendMessage = function(userID,param,callBack){
+                
+        var SendMessageLogic = require("./Logics/SendMessage");
+
+        SendMessageLogic.execute(userID,param,function(sendMessageResult){
+            
+            if(callBack) callBack(sendMessageResult);
+            
+        });        
+        
+    };
+
+
+}
 
 spika.prototype.options = {};
 

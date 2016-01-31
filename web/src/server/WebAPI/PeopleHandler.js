@@ -5,7 +5,7 @@ var path = require('path');
 var _ = require('lodash');
 
 var RequestHandlerBase = require("./RequestHandlerBase");
-var UsersManager = require("../lib/UsersManager");
+var PeoplesManager = require("../lib/PeoplesManager");
 var DatabaseManager = require("../lib/DatabaseManager");
 var Utils = require("../lib/Utils");
 var Const = require("../const");

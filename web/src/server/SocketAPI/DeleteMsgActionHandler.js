@@ -7,16 +7,16 @@ var Utils = require("../lib/Utils");
 var Const = require("../const");
 var SocketHandlerBase = require("./SocketHandlerBase");
 var SocketAPIHandler = require('../SocketAPI/SocketAPIHandler');
-var MessageModel = require("../Models/MessageModel");
+var MsgModel = require("../Models/MsgModel");
 var Settings = require("../lib/Settings");
 
-var DeleteMessageActionHandler = function(){
+var DeleteMsgActionHandler = function(){
     
 }
 
-_.extend(DeleteMessageActionHandler.prototype,SocketHandlerBase.prototype);
+_.extend(DeleteMsgActionHandler.prototype,SocketHandlerBase.prototype);
 
-DeleteMessageActionHandler.prototype.attach = function(io,socket){
+DeleteMsgActionHandler.prototype.attach = function(io,socket){
         
     var self = this;
 
@@ -30,7 +30,7 @@ DeleteMessageActionHandler.prototype.attach = function(io,socket){
      *
      */
      
-    socket.on('deleteMessage', function(param){
+    socket.on('deleteMsg', function(param){
         
         if(Utils.isEmpty(param.userID)){
             socket.emit('socketerror', {code:Const.resCodeSocketDeleteMessageNoUserID});               
@@ -42,7 +42,7 @@ DeleteMessageActionHandler.prototype.attach = function(io,socket){
             return;
         }
         
-        MessageModel.findMessagebyId(param.messageID,function(err,message){
+        MsgModel.findMessagebyId(param.messageID,function(err,message){
             
             if(err) {
                 socket.emit('socketerror', {code:Const.resCodeSocketUnknownError});               
@@ -56,7 +56,7 @@ DeleteMessageActionHandler.prototype.attach = function(io,socket){
                 deleted: Utils.now()
             },{},function(err,userResult){
 
-                MessageModel.populateMessages(message,function (err,messages) {
+                MsgModel.populateMessages(message,function (err,messages) {
 
                     if(err) {
                         socket.emit('socketerror', {code:Const.resCodeSocketUnknownError});               
@@ -90,4 +90,4 @@ DeleteMessageActionHandler.prototype.attach = function(io,socket){
 }
 
 
-module["exports"] = new DeleteMessageActionHandler();
+module["exports"] = new DeleteMsgActionHandler();

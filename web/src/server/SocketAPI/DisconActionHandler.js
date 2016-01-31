@@ -1,44 +1,44 @@
 var _ = require('lodash');
 
-var UsersManager = require("../lib/UsersManager");
+var PeoplesManager = require("../lib/PeoplesManager");
 var DatabaseManager = require("../lib/DatabaseManager");
 var Utils = require("../lib/Utils");
 var Const = require("../const");
 var SocketHandlerBase = require("./SocketHandlerBase");
-var UserModel = require("../Models/UserModel");
+var PeopleModel = require("../Models/PeopleModel");
 var Settings = require("../lib/Settings");
 
-var DisconnectActionHandler = function(){
+var DisconActionHandler = function(){
     
 }
 
-_.extend(DisconnectActionHandler.prototype,SocketHandlerBase.prototype);
+_.extend(DisconActionHandler.prototype,SocketHandlerBase.prototype);
 
-DisconnectActionHandler.prototype.attach = function(io,socket){
+DisconActionHandler.prototype.attach = function(io,socket){
         
     var self = this;
     
-    socket.on('disconnect', function () {
+    socket.on('discon', function () {
         
-        var roomID = UsersManager.getRoomBySocketID(socket.id);
-        var user = UsersManager.getUserBySocketID(socket.id);
+        var roomID = PeoplesManager.getRoomBySocketID(socket.id);
+        var people = PeoplesManager.getPeopleBySocketID(socket.id);
                         
-        if(!_.isNull(user)){
+        if(!_.isNull(people)){
         
-            UsersManager.removeUser(roomID,user.userID);
+            PeoplesManager.removePeople(roomID,people.peopleID);
             socket.leave(roomID);
             
-            io.of(Settings.options.socketNameSpace).in(roomID).emit('userLeft', user);
+            io.of(Settings.options.socketNameSpace).in(roomID).emit('peopleLeft', people);
             
             if(Settings.options.sendAttendanceMessage){
 
                 //save as message
-                UserModel.findUserbyId(user.userID,function (err,user) {
+            	PeopleModel.findPeopleById(people.peopleID,function (err,people) {
                     
                     // save to database
                     var newMessage = new DatabaseManager.messageModel({
-                        user:user._id,
-                        userID: user.userID,
+                        people:people._id,
+                        peopleID: people.peopleID,
                         roomID: roomID,
                         message: '',
                         type: Const.messageUserLeave,
@@ -50,7 +50,7 @@ DisconnectActionHandler.prototype.attach = function(io,socket){
                         if(err) throw err;
                 
                         var messageObj = message.toObject();
-                        messageObj.user = user.toObject();
+                        messageObj.people = people.toObject();
                         
                         io.of(Settings.options.socketNameSpace).in(roomID).emit('newMessage', messageObj);
                         
@@ -69,4 +69,4 @@ DisconnectActionHandler.prototype.attach = function(io,socket){
 }
 
 
-module["exports"] = new DisconnectActionHandler();
+module["exports"] = new DisconActionHandler();

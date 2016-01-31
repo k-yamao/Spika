@@ -1,23 +1,23 @@
 var _ = require('lodash');
 var Observer = require("node-observer");
 
-var UsersManager = require("../lib/UsersManager");
+var PeoplesManager = require("../lib/PeoplesManager");
 var DatabaseManager = require("../lib/DatabaseManager");
 var Utils = require("../lib/Utils");
 var Const = require("../const");
 var SocketHandlerBase = require("./SocketHandlerBase");
-var UserModel = require("../Models/UserModel");
+var PeopleModel = require("../Models/PeopleModel");
 var Settings = require("../lib/Settings");
 
 var BridgeManager = require('../lib/BridgeManager');
 
-var SendTypingActionHandler = function(){
+var SendTypeActionHandler = function(){
     
 }
 
-_.extend(SendTypingActionHandler.prototype,SocketHandlerBase.prototype);
+_.extend(SendTypeActionHandler.prototype,SocketHandlerBase.prototype);
 
-SendTypingActionHandler.prototype.attach = function(io,socket){
+SendTypeActionHandler.prototype.attach = function(io,socket){
         
     var self = this;
 
@@ -33,9 +33,9 @@ SendTypingActionHandler.prototype.attach = function(io,socket){
      *
      */
      
-    socket.on('sendTyping', function(param){
+    socket.on('sendType', function(param){
 
-        if(Utils.isEmpty(param.userID)){
+        if(Utils.isEmpty(param.peopleID)){
             socket.emit('socketerror', {code:Const.resCodeSocketTypingNoUserID});
             return;
         }
@@ -50,18 +50,18 @@ SendTypingActionHandler.prototype.attach = function(io,socket){
             return;
         }
         
-        BridgeManager.hook('typing',param,function(result){
+        BridgeManager.hook('type',param,function(result){
             
             if(result == null || result.canSend){
                 
-                UserModel.findUserbyId(param.userID,function (err,user) {
+                PeopleModel.findPeopleById(param.peopleID,function (err,people) {
                     
                     if(err){
                         socket.emit('socketerror', {code:Const.resCodeSocketTypingFaild});
                         return;   
                     }
                     
-                    param.user = user;
+                    param.people = people;
                     io.of(Settings.options.socketNameSpace).in(param.roomID).emit('sendTyping', param);
                     Observer.send(this, Const.notificationUserTyping, param);
         
@@ -77,4 +77,4 @@ SendTypingActionHandler.prototype.attach = function(io,socket){
 }
 
 
-module["exports"] = new SendTypingActionHandler();
+module["exports"] = new SendTypeActionHandler();
