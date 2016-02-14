@@ -37,6 +37,11 @@ PeopleModel.prototype.init = function(){
     return this.model;
 }
 
+/**
+ * ピープルIDでピープル情報を取得する
+ * @param id
+ * @param callBack
+ */
 PeopleModel.prototype.findPeopleById = function(id,callBack){
 
     this.model.findOne({ peopleID: new RegExp("^" + id + "$","g") },function (err, people) {
@@ -50,6 +55,28 @@ PeopleModel.prototype.findPeopleById = function(id,callBack){
             
 }
 
+/**
+ * トークンからピープル情報を取得する
+ * @param token
+ * @param callBack
+ */
+PeopleModel.prototype.findPeopleByToken = function(token,callBack){
+
+    this.model.findOne({ token: new RegExp("^" + token + "$","g") },function (err, people) {
+    	
+    	if (err) 
+            console.error(err);
+        
+        if(callBack)
+            callBack(err,people);
+    });
+            
+}
+/**
+ * メールからピープル情報を取得する
+ * @param mail
+ * @param callBack
+ */
 PeopleModel.prototype.getPeople = function(mail,callBack){
 
     this.model.findOne({ mail: new RegExp("^" + mail + "$","g") },function (err, people) {

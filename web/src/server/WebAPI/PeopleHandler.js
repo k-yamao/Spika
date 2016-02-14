@@ -95,34 +95,14 @@ PeopleHandler.prototype.attach = function(router){
     
 
     /**
-     * @api {post} /people/login Get api token
-     * @apiName Login
-     * @apiGroup WebAPI
-     * @apiDescription Login to the room specified in request, and get token for the room.
-     * @apiParam {mail} 
-     * @apiParam {password}
-     * @apiParam {nicname}
-     * @apiSuccess {String} Token
-     * @apiSuccess {String} User Model of loginned user
-     * @apiSuccessExample Success-Response:
-            {
-				"success": 1
-				"result": {
-				"token": "KUfcImFziOp2GNPvPz0Zbluj"
-				"people": {
-					"__v": 0
-					"peopleID": "15"
-					"mail": "yama@local-c.com"
-					"password": "1234"
-					"nicname": "hoge"
-					"auth": 0
-					"token": "KUfcImFziOp2GNPvPz0Zbluj"
-					"created": 1451820799014
-					"_id": "568906ff12d61a9c06141cdf"
-					}-
-				}-
-			}
-    */
+     * 新規登録API（メール、パスワード、ニックネームを登録）
+     * サンプル
+     * http://localhost:3000/spika/v1/people
+     * http://spika.local-c.com:3000/spika/v1/people
+     * {"mail": "yamao@local-c.com", "password": "1234", "nicname": "hoge"}
+     * 新規登録成功"code": 200で返す
+     * すでに登録済みのときは"code": 203で返す
+     */
     router.post('/',function(request,response){
 		var mail     = request.body.mail;    
 		var password = request.body.password;
@@ -172,15 +152,105 @@ PeopleHandler.prototype.attach = function(router){
 						});
 						// 新規登録
 						newPeople.save(function(err,people){
-						    if(err) throw err;
-
-						    self.setRes(response,Const.httpCodeSucceed,"signup ok", people);
+							 if(err){            			 
+		            			 self.setRes(response,Const.httpCodeInternalServerError,"people sabe fail", err);
+							 } else {
+								 self.setRes(response,Const.httpCodeSucceed,"signup ok", people);
+							 }
 						});
             		 }
             	});
             } else {
             	
             	self.setRes(response,Const.httpCodeAccepted,"signup fail. Signed people", people);
+            }
+        });
+    });
+    /**
+     * メールアドレスの確認をして認証フラグ（auth=1）にする
+     * http://localhost:3000/spika/v1/people/auth/o5bzmMhlJYRibnMht2lWLTAy
+     * http://spika.local-c.com:3000/spika/v1/people/auth/o5bzmMhlJYRibnMht2lWLTAy
+     * 認証成功"code": 200
+     * 認証失敗"code": 203
+     */
+    router.get('/auth/:token',function(request,response){
+
+    	var token =request.params.token;
+    	
+    	console.log(token);
+    	// 登録ずみかチェックのためpeopleコレクションを取得してみる
+        PeopleModel.findPeopleByToken(token,function (err,people) {
+
+        	if (people) {
+            	people.update({
+	        		auth : 1,
+	        		updated : Utils.now()
+        		},{},function(err,peopleResult){
+            
+	                if(err){
+	                	self.setRes(response,Const.httpCodeAccepted,"auth fail", people);
+	                }else{
+	                	self.setRes(response,Const.httpCodeSucceed,"auth ok", people);
+	                }                
+        		});
+
+        	} else {
+        		
+        	}
+        });
+    });
+    /**
+     * プロフィール登録でピープル情報を更新するAPI
+     * 
+     */
+    router.post('/profile',function(request,response){
+    	var peopleID  = request.body.peopleID;
+    	var nicname  = request.body.nicname;
+    	var imageURL = request.body.imageURL;
+    	var sex      = request.body.sex;
+    	var birthDay = request.body.birthDay;
+    	var pref     = request.body.pref;
+    	var city     = request.body.city;
+    	var appeal   = request.body.appeal;
+    	var phrase   = request.body.phrase;
+    	
+    	
+    	
+    	
+		/*********************************************
+		 * TODOいつか入力チェックを実装する
+		 *********************************************/
+        
+		// ピープルIDでピープル情報を取得
+        PeopleModel.findPeopleById(peopleID,function (err,people) {
+
+            if(people != null){
+            
+            	people.update({
+            		nicname  : nicname,
+            		imageURL : imageURL,
+            		sex      : sex,
+            		birthDay : birthDay,
+            		pref     : pref,
+            		city     : city,
+            		appeal   : appeal,
+            		phrase   : phrase,
+	        		updated  : Utils.now()
+        		},{},function(err,peopleResult){
+            
+	                if(err){
+	                	self.setRes(response,Const.httpCodeAccepted,"people update fail", people);
+	                }else{
+	                	// 更新後のピープルを取得
+	                    PeopleModel.findPeopleById(peopleID,function (err,people) {
+	                    	self.setRes(response,Const.httpCodeSucceed,"people update  success", people);
+	                    });
+	                	
+	                }                
+        		});
+
+            } else {
+            	self.setRes(response,Const.httpCodeAccepted,"not found people", people);
             }
         });
     });
