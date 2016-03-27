@@ -19,6 +19,17 @@ RequestHandlerBase.prototype.path = function(path){
 
 // レスポンスを設定
 RequestHandlerBase.prototype.setRes = function(response, httpCode, message, datas){
+	// クロスドメイン設定
+//	var header = {
+//			"Access-Control-Allow-Origin":"*",
+//			//"Access-Control-Allow-Headers":"X-PINGOTHER",
+//			//"Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+//			//"Access-Control-Max-Age: ": "3600",
+//			//"Pragma": "no-cache",
+//			//"Cache-Control" : "no-cache"	   
+//		}
+//	//response.setHeader("Access-Control-Allow-Origin", "*");
+//	response.set(header);
 	// ステータスコード
 	response.status(httpCode); 
 	// レスポンス
@@ -27,6 +38,10 @@ RequestHandlerBase.prototype.setRes = function(response, httpCode, message, data
         msg  : message,
         data : datas,
     });
+	
+	//response.writeHead(httpCode, header);
+	
+	//
 }
 
 RequestHandlerBase.prototype.errorResponse = function(

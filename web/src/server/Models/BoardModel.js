@@ -16,15 +16,20 @@ BoardModel.prototype.init = function(){
 
     // Defining a schema
     var boardSchema = new mongoose.Schema({
-    	boardID : { type: String, index: true },
-        people  : { type: mongoose.Schema.Types.ObjectId, ref: 'People' },
-        peopleID: { type: String, index: true },
-        roomID  : { type: String, index: true },
-        title   : String,
-        desc    : String,
-        created : Number,
-        updated : Number,
-        deleted : Number
+    	boardID    : { type: String, index: true },
+        people     : { type: mongoose.Schema.Types.ObjectId, ref: 'People' },
+        peopleID   : { type: String, index: true },
+        boardIDTo  : { type: String},
+        peopleTo   : { type: mongoose.Schema.Types.ObjectId, ref: 'People' },
+        peopleIDTo : { type: String},
+        nicnameTo  : String,
+        inline     : String,
+        roomID     : { type: String, index: true },
+        title      : String,
+        desc       : String,
+        created    : Number,
+        updated    : Number,
+        deleted    : Number
     });
  
     this.model = mongoose.model(Settings.options.dbCollectionPrefix + "board", boardSchema);
@@ -53,7 +58,7 @@ BoardModel.prototype.findBoardbyId = function(id,callBack){
  * @param limit
  * @param callBack
  */
-BoardModel.prototype.findBoards = function(condition, limit,callBack){
+BoardModel.prototype.findBoards = function(condition, offset, limit, callBack){
             
     if(!Utils.isEmpty(condition.lastBoardID)){
         
@@ -71,7 +76,13 @@ BoardModel.prototype.findBoards = function(condition, limit,callBack){
             		deleted : condition.deleted,
             		created : {$lt:lastCreated}
             };
-            var query = self.model.find(condition).sort({'created': 'desc'}).limit(limit);        
+            var query = null;
+            if (offset > 0) {
+            	query = self.model.find(condition).sort({'created': 'desc'}).skip(offset).limit(limit);
+            } else {
+            	query = self.model.find(condition).sort({'created': 'desc'}).limit(limit);
+            }
+                    
             
             query.exec(function(err,data){
                 
@@ -88,8 +99,13 @@ BoardModel.prototype.findBoards = function(condition, limit,callBack){
         
     }else{
 
-        var query = this.model.find(condition).sort({'created': 'desc'}).limit(limit);        
-    
+    	
+    	var query = null;
+        if (offset > 0) {
+        	query = this.model.find(condition).sort({'created': 'desc'}).skip(offset).limit(limit);
+        } else {
+        	query = this.model.find(condition).sort({'created': 'desc'}).limit(limit); 
+        }
         query.exec(function(err,data){
             if (err) return console.error(err);
             if(callBack)
@@ -148,9 +164,6 @@ BoardModel.prototype.addBoardPeople = function(boards,callBack){
     }else{
         callBack(null,boards);
     }
-
-	
-	
     
 }
 module["exports"] = new BoardModel();

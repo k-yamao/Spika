@@ -1,4 +1,5 @@
 var express = require('express');
+var cors = require('cors');
 var router = express.Router();
 
 var bodyParser = require("body-parser");
@@ -23,6 +24,7 @@ var WebAPIHandler ={
     init: function(app,express){
                 
         var self = this;
+        app.use(cors());
         
         app.use(Settings.options.urlPrefix,express.static(__dirname + '/../../../public'));
         app.use(bodyParser.json());
@@ -38,6 +40,9 @@ var WebAPIHandler ={
         router.use("/people", require('./PeopleHandler'));
         router.use("/board", require('./BoardHandler'));
         router.use("/user/login", require('./LoginHandler'));
+        router.use("/room", require('./RoomHandler'));
+        router.use("/pick", require('./PickHandler'));
+        router.use("/report", require('./ReportHandler'));
         router.use("/temp", require('./TempHandler'));
         router.use("/msg/list", require('./MsgListHandler'));
         router.use("/msg/latest", require('./LatestMsgListHandler').router);

@@ -21,11 +21,13 @@ var SocketAPIHandler = {
         this.nsp = io.of(Settings.options.socketNameSpace);
         
         this.nsp.on('connection', function(socket) {
-                        
+        	
             require('./DisconnectActionHandler').attach(io,socket);
             require('./DisconActionHandler').attach(io,socket);
             require('./LoginActionHandler').attach(io,socket);
+            require('./SigninActionHandler').attach(io,socket);
             require('./SendMessageActionHandler').attach(io,socket);
+            require('./SendMsgActionHandler').attach(io,socket);
             require('./SendTypingActionHandler').attach(io,socket);
             require('./SendTypeActionHandler').attach(io,socket);
             require('./OpenMessageActionHandler').attach(io,socket);
@@ -33,7 +35,9 @@ var SocketAPIHandler = {
             require('./DeleteMessageActionHandler').attach(io,socket);
             require('./DeleteMsgActionHandler').attach(io,socket);
             socket.emit('text', 'socket.io OK!!');
-            
+            socket.on('hoge', function(param){
+            	console.log(param);
+            });
         });
 
     }

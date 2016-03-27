@@ -122,7 +122,7 @@ MessageListHandler.prototype.attach = function(router){
             },
             function (messages,done) {
 
-                MsgModel.populateMessages(messages,function (err,data) {
+                MsgModel.populateMsgs(messages,function (err,data) {
                     
                     done(err,data);
 
@@ -133,16 +133,10 @@ MessageListHandler.prototype.attach = function(router){
             function (err, data) {
                 
                 if(err){
-
-                    self.errorResponse(
-                        response,
-                        Const.httpCodeSeverError
-                    );
+                    self.setRes(response,Const.httpCodeInternalServerError,"server error", err);
                 
                 }else{
-                    
-                    self.successResponse(response,Const.responsecodeSucceed,{messages:data});
-                    
+                	self.setRes(response,Const.httpCodeSucceed,"msg list success", data);
                 }
                      
             }

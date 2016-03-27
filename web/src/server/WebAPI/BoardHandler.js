@@ -41,12 +41,69 @@ BoardHandler.prototype.attach = function(router){
      *
      *     
      * @apiSuccessExample Success-Response:
+{
+
+{
+    "code": 1,
+    "data": [
+        {
+            "__v": 0,
+            "_id": "55d2d194caf997b543836fc8",
+            "created": 1439879572232,
+            "message": "",
+            "roomID": "test",
+            "type": 1001,
+            "user": {
+                "userID": "test",
+                "name": "test",
+                "avatarURL": "http://45.55.81.215:80/img/noavatar.png",
+                "token": "UI6yHxeyZnXOZ1EgT6g5ftwD",
+                "created": 1439878817506,
+                "_id": "55d2cea1caf997b543836fb2",
+                "__v": 0
+            },
+            "userID": "test",
+            "seenBy": [
+                {
+                    "user": {
+                        "userID": "test2",
+                        "name": "test2",
+                        "avatarURL": "http://45.55.81.215:80/img/noavatar.png",
+                        "token": "YMsHeg3KEQIhtvt46W5fgnaf",
+                        "created": 1439878824411,
+                        "_id": "55d2cea8caf997b543836fb6",
+                        "__v": 0
+                    },
+                    "at": 1439879572353
+                },
+                {
+                    "user": {
+                        "userID": "test3",
+                        "name": "tset3",
+                        "avatarURL": "http://45.55.81.215:80/img/noavatar.png",
+                        "token": "TahnOaC6JzldCh6gAmJs3jMC",
+                        "created": 1439878820142,
+                        "_id": "55d2cea4caf997b543836fb4",
+                        "__v": 0
+                    },
+                    "at": 1439879572361
+                }
+            ]
+        },
+        ...
+    ]
+}
      */
     
     router.get('/list',function(request,response){
         var condition = {
        		deleted    : 0,
         };
+        
+        // リミットとオフセットのデフォルト
+        var limit  = Const.pagingLimit;
+        var offset = 0;
+        
         
         // ラストボードIDチェック
         if(!Utils.isEmpty(request.query.boardID)){
@@ -60,8 +117,14 @@ BoardHandler.prototype.attach = function(router){
         
         // リミットが存在した場合のチェック
         if(!Utils.isEmpty(request.query.limit)){
-        	condition.limit = request.query.limit;
+        	limit  = parseInt(request.query.limit);
         }
+        
+        // オフセットが存在した場合のチェック
+        if(!Utils.isEmpty(request.query.offset)){
+        	offset = parseInt(request.query.offset);;
+        }
+
 
         // 都道府県
         if(!Utils.isEmpty(request.query.pref)){
@@ -87,7 +150,7 @@ BoardHandler.prototype.attach = function(router){
         
             function (done) {
 
-                BoardModel.findBoards(condition, Const.pagingLimit, function (err,boards) {
+                BoardModel.findBoards(condition, offset, limit, function (err,boards) {
                 	
                     done(err,boards);
                 });
@@ -108,7 +171,7 @@ BoardHandler.prototype.attach = function(router){
                 
                 }else{
                     
-                    self.setRes(response,Const.responsecodeSucceed,"board list ok", boards);
+                    self.setRes(response,Const.httpCodeSucceed,"board list ok", boards);
                     
                 }
                      
@@ -121,8 +184,14 @@ BoardHandler.prototype.attach = function(router){
     router.post('/',function(request,response){
     	
     	// 投稿内容
-    	var desc     = request.body.desc;
-    	var peopleID = request.body.peopleID;
+    	var desc       = request.body.desc;
+    	var boardIDTo  = request.body.boardIDTo;
+    	var peopleID   = request.body.peopleID;
+    	var peopleIDTo = request.body.peopleIDTo;
+    	var inline     = request.body.inline;
+    	var nicnameTo  = request.body.nicnameTo;
+    	
+    	
     	
     	// 投稿内容チェック
         if(Utils.isEmpty(desc)){
@@ -145,13 +214,18 @@ BoardHandler.prototype.attach = function(router){
    		 	
 	   		 	// Defining a schema
 	   		     var newBoard = new DatabaseManager.boardModel({
-	   		     	 boardID : counter.seq,
-	   		         people  : null,
-	   		         peopleID: peopleID,
-	   		         desc    : desc,
-	   		         created : Utils.now(),
-	   		         updated : Utils.now(),
-	   		         deleted : 0
+	   		     	 boardID   : counter.seq,
+	   		         people    : null,
+	   		         peopleID  : peopleID,
+	   		         boardIDTo : boardIDTo,
+	   		         peopleTo  : null,
+	   		         peopleIDTo: peopleIDTo,
+	   		         nicnameTo : nicnameTo,
+	   		         inline    : inline,
+	   		         desc      : desc,
+	   		         created   : Utils.now(),
+	   		         updated   : Utils.now(),
+	   		         deleted   : 0
 	   		     });
 	   		     
 	   		     PeopleModel.findPeopleById(peopleID,function(err,people){

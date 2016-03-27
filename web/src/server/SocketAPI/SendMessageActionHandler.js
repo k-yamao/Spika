@@ -35,7 +35,7 @@ SendMsgActionHandler.prototype.attach = function(io,socket){
      *
      */
      
-    socket.on('sendMsg', function(param){
+    socket.on('sendMessage', function(param){
                         
                         
         if(Utils.isEmpty(param.roomID)){

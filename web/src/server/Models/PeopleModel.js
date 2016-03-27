@@ -81,7 +81,6 @@ PeopleModel.prototype.getPeople = function(mail,callBack){
 
     this.model.findOne({ mail: new RegExp("^" + mail + "$","g") },function (err, people) {
     	
-    	console.log(people);
     	if (err) 
             console.error(err);
         
@@ -89,6 +88,37 @@ PeopleModel.prototype.getPeople = function(mail,callBack){
             callBack(err,people);
     });
             
+}
+
+/**
+ * ピープルオブジェクトも取得
+ * @param aryId
+ * @param callBack
+ */
+PeopleModel.prototype.findPeopleInternalPeopleId = function(aryId,callBack){
+        
+        var conditions = [];
+        aryId.forEach(function(id){
+            
+            conditions.push({
+                peopleID : id
+            });
+            
+        });        
+        var query = this.model.find({
+            $or : conditions
+        }).sort({'created': 1});        
+        
+        query.exec(function(err,data){
+            
+            if (err)
+                console.error(err);
+            
+            if(callBack)
+                callBack(err,data)
+            
+        });                
+                
 }
 
 /**
@@ -121,7 +151,7 @@ PeopleModel.prototype.findPeopleInternalId = function(aryId,callBack){
             
         });                
                 
-    },
+}
 
 
 module["exports"] = new PeopleModel();

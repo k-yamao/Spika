@@ -18,6 +18,7 @@ MsgModel.prototype.init = function(){
     var msgSchema = new mongoose.Schema({
         people  : { type: mongoose.Schema.Types.ObjectId, index: true },
         peopleID: { type: String, index: true },
+        localID : { type: String, index: true },
         roomID  : { type: String, index: true },
         type    : Number,
         msg     : String,
@@ -77,7 +78,7 @@ MsgModel.prototype.init = function(){
 
     }
 
-    this.model = mongoose.model(Settings.options.dbCollectionPrefix + "msg", msgSchema);
+    this.model = mongoose.model(Settings.options.dbCollectionPrefix + "msgs", msgSchema);
     return this.model;
         
 }
@@ -179,14 +180,18 @@ MsgModel.prototype.findMessages = function(roomID,lastMsgID,limit,callBack){
 
 }
 
-MsgModel.prototype.populateMessages = function(msgs,callBack){
-    
-    if(!_.isArray(msgs)){
+
+MsgModel.prototype.populateMsgs = function(msgs,callBack){
+
+	
+	
+	if(!_.isArray(msgs)){
         
     	msgs = [msgs];
         
     }
     
+	
     // collect ids
     var ids = [];
     
@@ -203,7 +208,7 @@ MsgModel.prototype.populateMessages = function(msgs,callBack){
     
     if(ids.length > 0){
     
-    	PeopleModel.findUsersbyInternalId(ids,function(err,peopleResult){
+    	PeopleModel.findPeopleInternalId(ids,function(err,peopleResult){
             
             var resultAry = [];
             
@@ -211,11 +216,11 @@ MsgModel.prototype.populateMessages = function(msgs,callBack){
                 
                 var obj = msgElement.toObject();
                 
-                _.forEach(userResult,function(userElement,userIndex){
+                _.forEach(peopleResult,function(peopleElement,userIndex){
                     
                     // replace user to userObj
-                    if(msgElement.user.toString() == userElement._id.toString()){
-                        obj.user = userElement.toObject();
+                    if(msgElement.people.toString() == peopleElement._id.toString()){
+                        obj.people = peopleElement.toObject();
                     }
 
                 }); 
@@ -225,13 +230,13 @@ MsgModel.prototype.populateMessages = function(msgs,callBack){
                 // replace seenby.user to userObj
                 _.forEach(msgElement.seenBy,function(seenByRow){
                     
-                    _.forEach(userResult,function(userElement,userIndex){
+                    _.forEach(peopleResult,function(peopleElement,peopleIndex){
                         
                         // replace user to userObj
-                        if(seenByRow.user.toString() == userElement._id.toString()){
+                        if(seenByRow.people.toString() == peopleElement._id.toString()){
                             
                             seenByAry.push({
-                                user:userElement,
+                                people:peopleElement,
                                 at:seenByRow.at 
                             });
                             

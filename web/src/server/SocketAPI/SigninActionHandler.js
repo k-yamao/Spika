@@ -29,7 +29,7 @@ LoginActionHandler.prototype.attach = function(io,socket){
      */
     socket.on('signin', function(param){
                     
-        if(Utils.isEmpty(param.peopeID)){  
+        if(Utils.isEmpty(param.peopleID)){  
             socket.emit('socketerror', {code:Const.resCodeSocketLoginNoUserID});               
             return;
         }
@@ -38,20 +38,19 @@ LoginActionHandler.prototype.attach = function(io,socket){
             socket.emit('socketerror', {code:Const.resCodeSocketLoginNoRoomID});               
             return;
         }
-        
+    
                 
         socket.join(param.roomID);
         io.of(Settings.options.socketNameSpace).in(param.roomID).emit('newPeople', param);
         Observer.send(this, Const.notificationNewUser, param);
 
         //save as message
-        PeopleModel.findPeoplebyId(param.userID,function (err,people) {
+        PeopleModel.findPeopleById(param.peopleID,function (err,people) {
             
             if(_.isEmpty(people)){
                 
 
             }
-            
             
             PeoplesManager.addPeople(param.peopleID,people.name,people.avatarURL,param.roomID,people.token);
             PeoplesManager.pairSocketIDandPeopleID(param.peopleID,socket.id);            
@@ -59,26 +58,26 @@ LoginActionHandler.prototype.attach = function(io,socket){
             if(Settings.options.sendAttendanceMessage){
             
                 // save to database
-                var newMessage = new DatabaseManager.messageModel({
-                    user:user._id,
-                    userID: param.userID,
+                var newMsg = new DatabaseManager.msgModel({
+                    people:people._id,
+                    peopleID: param.peopleID,
                     roomID: param.roomID,
-                    message: '',
+                    msg: 'join',
                     type: Const.messageNewUser,
                     created: Utils.now()                   
                 });
                             
-                newMessage.save(function(err,message){
+                newMsg.save(function(err,msg){
                 
                     if(err) {
                         socket.emit('socketerror', {code:Const.resCodeSocketUnknownError});               
                         return;
                     }
             
-                    var messageObj = message.toObject();
-                    messageObj.user = user.toObject();
+                    var msgObj = msg.toObject();
+                    msgObj.people = people.toObject();
                     
-                    io.of(Settings.options.socketNameSpace).in(param.roomID).emit('newMessage', messageObj);
+                    io.of(Settings.options.socketNameSpace).in(param.roomID).emit('newMsg', msgObj);
                     
                 });
                             

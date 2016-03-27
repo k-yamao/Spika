@@ -3,6 +3,7 @@ var router = express.Router();
 var bodyParser = require("body-parser");
 var path = require('path');
 var _ = require('lodash');
+var mailer = require('nodemailer');
 
 var RequestHandlerBase = require("./RequestHandlerBase");
 var PeoplesManager = require("../lib/PeoplesManager");
@@ -57,6 +58,38 @@ PeopleHandler.prototype.attach = function(router){
         PeopleModel.findPeopleById(peopleID,function (err,people) {
             
             if(people != null){
+            	var setting = {
+            		    //SMTPサーバーを使う場合
+            		    host: 'smtp.gmail.com',
+            		    auth: {
+            		        user: 'info@local-c.com',
+            		        pass: 'localcolor',
+            		        port: '587'
+            		    }
+            	};
+            	
+            	//メールの内容
+            	var mailOptions = {
+            	    from: 'info@local-c.com',
+            	    to: 'yamao1983@gmail.com',
+            	    subject: 'メールの件名',
+            	    html: 'メールの内容' //HTMLタグが使えます
+            	};
+            	//SMTPの接続
+            	var smtp = mailer.createTransport('SMTP', setting);
+
+            	//メールの送信
+            	smtp.sendMail(mailOptions, function(err, res){
+            	    //送信に失敗したとき
+            	    if(err){
+            	        console.log(err);
+            	    //送信に成功したとき
+            	    }else{
+            	        console.log('Message sent: ' + res.message);
+            	    }
+            	    //SMTPの切断
+            	    smtp.close();
+            	});
             	
             	self.setRes(response,Const.httpCodeSucceed,"get people success", people);
 
@@ -69,7 +102,7 @@ PeopleHandler.prototype.attach = function(router){
         
     });
     
-    router.post('/login',function(request,response){
+    router.post('/signin',function(request,response){
         var mail     = request.body.mail;
         var password = request.body.password;
         
@@ -85,6 +118,7 @@ PeopleHandler.prototype.attach = function(router){
             	}
 
             } else {
+            	
             	self.setRes(response,Const.httpCodeInternalServerError,"server error", err);
             }
               
@@ -92,8 +126,17 @@ PeopleHandler.prototype.attach = function(router){
         //self.successResponse(response,peopleID);
         
     });
+    router.post('/test',function(request,response){
+    	
+    	
+    	self.setRes(response, Const.httpCodeSucceed, "OK", request.body);
+    	
+    	return;
+    	
+    	
+    });
     
-
+    
     /**
      * 新規登録API（メール、パスワード、ニックネームを登録）
      * サンプル
@@ -108,6 +151,7 @@ PeopleHandler.prototype.attach = function(router){
 		var password = request.body.password;
 		var nicname  = request.body.nicname;
 		var auth     = 0;
+		
 
 		// メール必須チェック
         if(Utils.isEmpty(mail)){
@@ -147,8 +191,9 @@ PeopleHandler.prototype.attach = function(router){
 						    nicname : nicname,
 						    auth    : auth,
 						    token   : token,
+						    loging  : Utils.now(),
 						    updated : Utils.now(),
-						    created: Utils.now()
+						    created : Utils.now()
 						});
 						// 新規登録
 						newPeople.save(function(err,people){
@@ -235,6 +280,7 @@ PeopleHandler.prototype.attach = function(router){
             		city     : city,
             		appeal   : appeal,
             		phrase   : phrase,
+            		loging   : Utils.now(),
 	        		updated  : Utils.now()
         		},{},function(err,peopleResult){
             
@@ -243,6 +289,7 @@ PeopleHandler.prototype.attach = function(router){
 	                }else{
 	                	// 更新後のピープルを取得
 	                    PeopleModel.findPeopleById(peopleID,function (err,people) {
+	                    	console.log(people);
 	                    	self.setRes(response,Const.httpCodeSucceed,"people update  success", people);
 	                    });
 	                	

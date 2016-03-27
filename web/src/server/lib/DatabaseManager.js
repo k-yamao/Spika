@@ -11,6 +11,9 @@ var DatabaseManager = {
     counterModel:null,
     userModel:null,
     fileModel:null,
+    roomModel:null,
+    pickModel:null,
+    reportModel:null,
     
     init: function(options){
 		
@@ -65,6 +68,9 @@ var DatabaseManager = {
         this.messageModel = require('../Models/MessageModel').init();
         this.userModel = require('../Models/UserModel').init();
         this.fileModel = require('../Models/FileModel').init();
+        this.roomModel = require('../Models/RoomModel').init();
+        this.pickModel = require('../Models/PickModel').init();
+        this.reportModel = require('../Models/ReportModel').init();
         
     }
 }

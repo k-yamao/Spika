@@ -36,8 +36,10 @@ SendMsgActionHandler.prototype.attach = function(io,socket){
      */
      
     socket.on('sendMsg', function(param){
-                        
-                        
+    	
+//    	socket.emit('text', 'socket.io MSG!!');
+//    	return;
+ //         socket.emit('socketerror', {});                
         if(Utils.isEmpty(param.roomID)){
             socket.emit('socketerror', {code:Const.resCodeSocketSendMessageNoRoomID}); 
             return;
@@ -54,7 +56,7 @@ SendMsgActionHandler.prototype.attach = function(io,socket){
             return;
         }
                         
-        if(param.type == Const.messageTypeText && Utils.isEmpty(param.message)){
+        if(param.type == Const.messageTypeText && Utils.isEmpty(param.msg)){
             socket.emit('socketerror', {code:Const.resCodeSocketSendMessageNoMessage});               
             return;
         }
@@ -71,16 +73,16 @@ SendMsgActionHandler.prototype.attach = function(io,socket){
         }
         
         var peopleID = param.peopleID;
-
+        
         BridgeManager.hook('sendMsg',param,function(result){
             
             if(result == null || result.canSend){
                 
                 var peopleID = param.peopleID;
-            
+               
                 SendMsgLogic.execute(peopleID,param,function(result){
                     
-                    
+                	
                     
                 },function(err,code){
                     

@@ -55,6 +55,7 @@
     
     Const.pagingLimit = 50;
 
+    Const.notificationSendMsg = "SendMsg";
     Const.notificationSendMessage = "SendMessage";
     Const.notificationNewUser = "NewUser";
     Const.notificationUserTyping = "UserTyping";
