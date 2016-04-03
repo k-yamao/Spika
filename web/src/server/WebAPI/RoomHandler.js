@@ -103,46 +103,23 @@ SigninHandler.prototype.attach = function(router){
                               
                      },
                      function (rooms,done) {
-                    	
-                    	 if (rooms.length > 0) {
-                    		 var roomList = [];
-                    		 var r = null;
-                    		 var cnt = rooms.length - 1;
-	
-                    		 rooms.forEach(function(room, index){
-								//roomList.push(room);
-								// roomを検索してあれば、ルームIDとメンバーを返す
-							   	RoomModel.findRoomPeople(room.roomID,room, function (err,rs) {
-							   			roomList.push(rs);
-							       		if(cnt == index) {
-							       			done(err,roomList);
-											return;
-							       		}
-							   	});
-							});
-                    	 } else {
-                    		 console.log(done);
-                    		 done(null,rooms);
-                    		 
-                    	 }
+
+						RoomModel.findRoomByrooms(rooms,function (err,rooms) {
+							done(err,rooms);
+						});
+						
                      },
                      function (roomList,done) {
                     	 if (roomList.length > 0) {
                     		 var rl = [];
-						
-                    		 var cnt = roomList.length - 1;
-                    		 roomList.forEach(function(room, index){
-                    			 RoomModel.populatePeople(room,function (err,room) {
-								
-                    				 rl.push(room)
-								
-                    				 if(cnt == index) {
-                    					 done(null,rl);
-                    					 return;
-                    				 }
-								
+                    		 async.each(roomList, function(room, next){
+                    			 RoomModel.populatePeople(room,function (err,r) {
+                    				 rl.push(r)
+                    				 next();
                     			 });
-							
+                    			 
+                    		 }, function complete(err) {
+                    			 done(err,rl);
                     		 });
                     	 } else {
                     		done(null,roomList);

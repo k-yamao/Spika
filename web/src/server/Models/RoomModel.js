@@ -71,7 +71,7 @@ RoomModel.prototype.findRoomByroomID = function(roomID,callBack){
  */
 RoomModel.prototype.findRoomBypeopleID = function(peopleID,callBack){
 
-    this.model.find({ peopleID: peopleID },function (err, rooms) {
+    this.model.find({ peopleID: peopleID },{},{sort:{created: -1},limit:100},function (err, rooms) {
     	//this.model.find({ peopleID: peopleID },{},{sort:{created: desc}}, function (err, rooms) {
         if (err) 
             console.error(err);
@@ -106,6 +106,72 @@ RoomModel.prototype.findRoomPeople = function(roomID,room,callBack){
 
     });
       
+}
+
+/**
+ * roomリストからroom情報を全て取得する 
+ * @param roomID
+ * @param callBack
+ */
+RoomModel.prototype.findRoomByrooms = function(rooms, callBack){
+	
+	var rooms = rooms;
+    if(!_.isArray(rooms)){
+    	rooms = [rooms];
+    }
+	
+	var conditions = [];
+	rooms.forEach(function(room){
+
+		conditions.push({
+            roomID : room.roomID
+        });
+        
+    });
+    
+    var query = this.model.find({
+        $or : conditions
+    }).sort({'created': 1});        
+    
+    
+    // ルームリスト
+    var roomList = [];
+    
+    query.exec(function(err,data){
+        
+    	
+    	async.each(rooms, function(room, next1){
+    	
+    		var r  = {
+            		roomID : 	room.roomID,	
+            		peopleID : 	room.peopleID,
+            		peoples  : 	[]
+            };
+    		
+	    	async.each(data, function(dr, next2){
+	    	
+	    		
+	    		if (room.roomID == dr.roomID) {
+	    		
+	    			r.peoples.push(dr);
+	    		}    		
+	    		
+	    		next2();
+	    	}, function complete(err) {
+	    		
+	    	});
+    		roomList.push(r);
+	    	next1();
+    	}, function complete(err) {
+    		if (err)
+                console.error(err);
+            
+            if(callBack)
+                callBack(err,roomList)
+    	});
+        
+        
+    });                
 }
 
 
