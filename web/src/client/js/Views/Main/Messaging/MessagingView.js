@@ -84,7 +84,6 @@ var MessagingView = Backbone.View.extend({
         
         Backbone.on(CONST.EVENT_ON_TYPING,function(obj){
             
-            
             if(obj.userID == LoginUserManager.user.get('id'))
                 return;
                 
@@ -228,6 +227,8 @@ var MessagingView = Backbone.View.extend({
                 var loadedMessageModels = [];
                 
                 var html = '';
+                
+                data = data.messages;
                 
                 if(data.length < CONST.PAGING_ROW){
                     
@@ -441,70 +442,29 @@ var MessagingView = Backbone.View.extend({
         
         this.afterRender();
 
-        if(isBottom)
-            this.scrollToBottom();  
+        this.scrollToBottom();
                       
                     
     },
     afterRender: function(){
         
         var self = this;
-        var lastUserID = '';
         
-        SS('.message-cell').each(function(){
+        SS('.message-cell img').each(function(){
             
-            var userID = $(this).attr('userid');
-            var isFirst = (userID != lastUserID);
+            if($(this)[0].complete === true){
 
-            lastUserID = userID;
-            
-            $(this).removeClass('not-first');
-            
-            if(!isFirst)
-                $(this).addClass('not-first');
-                
-            if($(this).find('.message').length){    
-
-                if(isFirst)
-                    $(this).height($(this).find('.message').height() + $(this).find('.info').height()); 
-                else
-                    $(this).height($(this).find('.message').height()); 
+            } else {
+                $(this).unbind().on('load',function(){
                     
-            }
-            
-            if($(this).find('.progress-container').length){
-                $(this).height($(this).find('.progress-container').height()); 
-            }
-            
-            if($(this).find('.file-container').length){
-
-                if(isFirst)
-                    $(this).height($(this).find('.file-container').height() + $(this).find('.info').height()); 
-                else
-                    $(this).height($(this).find('.file-container').height()); 
-
-                
-            }
-
-            if($(this).find('.thumb-container').length){
-                
-
-                if(isFirst)
-                    $(this).height(Settings.options.thumbnailHeight + $(this).find('.info').height() + 30); 
-                else
-                    $(this).height(Settings.options.thumbnailHeight + 30); 
+                    self.setupHeights();
                     
-                
-                
+                });
             }
-
-            if($(this).find('.typing').length){
-                $(this).height($(this).find('.typing').height()); 
-            }
-
-           
         });
-        
+
+        self.setupHeights();
+
         // attach lightbox
         SS('.spika-thumb').colorbox({photo:true,fixed:true,width:'80%',height:'80%%¥',
             onOpen:function(evt){
@@ -633,6 +593,65 @@ var MessagingView = Backbone.View.extend({
         });
                   
     },
+    setupHeights : function(){
+
+        var lastUserID = '';
+        
+        SS('.message-cell').each(function(){
+            
+            var userID = $(this).attr('userid');
+            var isFirst = (userID != lastUserID);
+
+            lastUserID = userID;
+            
+            $(this).removeClass('not-first');
+            
+            if(!isFirst)
+                $(this).addClass('not-first');
+                
+            if($(this).find('.message').length){    
+
+                if(isFirst)
+                    $(this).height($(this).find('.message').height() + $(this).find('.info').height()); 
+                else
+                    $(this).height($(this).find('.message').height()); 
+                    
+            }
+            
+            if($(this).find('.progress-container').length){
+                $(this).height($(this).find('.progress-container').height()); 
+            }
+            
+            if($(this).find('.file-container').length){
+
+                if(isFirst)
+                    $(this).height($(this).find('.file-container').height() + $(this).find('.info').height()); 
+                else
+                    $(this).height($(this).find('.file-container').height()); 
+
+                
+            }
+
+            if($(this).find('.thumb-container').length){
+                
+
+                if(isFirst)
+                    $(this).height(Settings.options.thumbnailHeight + $(this).find('.info').height() + 30); 
+                else
+                    $(this).height(Settings.options.thumbnailHeight + 30); 
+                    
+                
+                
+            }
+
+            if($(this).find('.typing').length){
+                $(this).height($(this).find('.typing').height()); 
+            }
+
+        
+        });
+        
+    },
     openMessageInfoView: function(messageID){
            
        // get message model by message id
@@ -701,9 +720,11 @@ var MessagingView = Backbone.View.extend({
         
     },
     removeTyping: function(userID){
-        
+
+        var userIDEscapted = encodeURIComponent(userID).replace("'","quote").replace("%","");
         var emlContainer = SS('#additional-notification-container');
-        SS('#' + userID + "-typing").remove();
+        
+        SS('#' + userIDEscapted + "-typing").remove();
 
        if(_.isEmpty(emlContainer.html())){
             emlContainer.height(0);
@@ -715,9 +736,13 @@ var MessagingView = Backbone.View.extend({
     addTyping: function(obj){
         
         var emlContainer = SS('#additional-notification-container');
-        
+        var userIDEscapted = encodeURIComponent(obj.userID).replace("'","quote").replace("%","");
+
+
         var text = obj.user.name + " is typing...";
-        var id = obj.user.userID + "-typing";
+        var id = userIDEscapted + "-typing";
+        
+        console.log('addtyping',id);
         
         var html = '<span id="' + id + '">' + text + '</span>';
         

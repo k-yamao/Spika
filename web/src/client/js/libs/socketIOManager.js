@@ -3,6 +3,7 @@ var Backbone = require('backbone');
 var _ = require('lodash');
 var CONST = require('../consts');
 var Config = require('../init');
+var ErrorDialog = require('../Views/Modals/ErrorDialog/ErrorDialog');
 
 (function(global) {
     "use strict;"
@@ -16,6 +17,19 @@ var Config = require('../init');
             this.io = socket.connect(Config.socketUrl);
             
 
+            this.io.on('socketerror', function(param){
+                
+                if(param.code){
+                    
+                    ErrorDialog.show('Error',CONST.ERROR_CODES[param.code]);
+                    
+                }else{
+                    ErrorDialog.show('Error','Unknown Error');
+                }
+                
+                
+            });
+            
             this.io.on('newUser', function(param){
                 Backbone.trigger(CONST.EVENT_ON_LOGIN_NOTIFY, param);
                                 
@@ -33,6 +47,7 @@ var Config = require('../init');
             });
 
             this.io.on('userLeft', function(param){
+            
                 Backbone.trigger(CONST.EVENT_ON_LOGOUT_NOTIFY, param);
 
                 // call listener
@@ -49,7 +64,9 @@ var Config = require('../init');
             });
 
             this.io.on('newMessage', function(param){ 
-            
+                
+                console.log('newMessage',param);
+                
                 Backbone.trigger(CONST.EVENT_ON_MESSAGE,param);	
                     
                 // call listener
@@ -66,6 +83,8 @@ var Config = require('../init');
             }); 
 
             this.io.on('sendTyping', function(param){ 
+                
+                
                 Backbone.trigger(CONST.EVENT_ON_TYPING,param);	    
  
                  // call listener
