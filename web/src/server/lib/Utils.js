@@ -52,8 +52,16 @@ var Utils = {
         
         
         return result;
-    }
-    
+    },
+    isOverlapCheck : function(array, value) {
+		for (var i =0, len = array.length; i < len; i++) {
+		    if (value == array[i]) {
+		      // 存在したらtrueを返す
+		      return true;
+		    }
+		}
+		return false;
+	}
 }
 
 module["exports"] = Utils;

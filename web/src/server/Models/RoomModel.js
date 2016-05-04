@@ -145,6 +145,8 @@ RoomModel.prototype.findRoomByrooms = function(rooms, callBack){
     		var r  = {
             		roomID : 	room.roomID,	
             		peopleID : 	room.peopleID,
+            		msg      : 	"",
+            		created  : 	0,
             		peoples  : 	[]
             };
     		

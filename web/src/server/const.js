@@ -61,7 +61,21 @@
     Const.notificationUserTyping = "UserTyping";
     Const.notificationMessageChanges = "MessageChanges";
 
-
+    Const.mailUser = "info@local-c.com"; // Your gmail address.
+    Const.mailClientId = "58148489510-rj5hb6h68h64e9632av9mm2k9fvqi5sr.apps.googleusercontent.com";
+    Const.mailClientSecret =  "PY8JIV6xPfS5XSnVU5UwjD9L";
+    Const.mailRefreshToken =  "1/In-TIBz9R1ZU_e2iwYX2QQKugFQBGaCy28D5QJVdKuoMEudVrK5jSpoR30zcRFq6";
+    Const.mailSignature =  "<br><br><br><p>────────────────────────<br>Street<br>〒151-0062<br>東京都渋谷区元代々木町43-6<br>TEL:03-6804-8225<br>Email: info@local-c.com<br>────────────────────────<p>";
+    Const.mailTitleChangePassword =  "Street パスワード変更";
+    Const.mailTitleInitPassword   =  "Street パスワードを初期化";
+    Const.mailTitleAuth           =  "Street 本人確認";
+    Const.mailHtmlChangePassword  =  "<p>Streetのパスワード変更が完了しました。</p>";
+    Const.mailHtmlInitPassword    =  "<p>Streetのパスワードを初期化しました。</p>";
+    Const.mailHtmlAuth            =  "<p>URLにアクセスして登録を完了させてください。</p>";
+    Const.mailAuthUrl             =  "http://street.local-c.com/auth/?token=";
+    
+    
+    
     // Exports ----------------------------------------------
     module["exports"] = Const;
 

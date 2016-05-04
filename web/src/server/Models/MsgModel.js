@@ -97,6 +97,42 @@ MsgModel.prototype.findMessagebyId = function(id,callBack){
     });
             
 }
+/**
+ * ピープルIDから重複を削除したルームIDを返す
+ * @param peopleID
+ * @param callBack
+ */
+MsgModel.prototype.findMsgRoomID = function(peopleID,callBack){
+
+    this.model.find({ peopleID : peopleID }).distinct('roomID', function (err, roomIDs) {
+
+    	if (err) 
+            console.error(err);
+        
+        if(callBack)
+            callBack(err,roomIDs)
+        
+    });
+            
+}
+/**
+ * ピープルIDからルームID、作成日、メッセージを返す
+ * @param peopleID
+ * @param callBack
+ */
+MsgModel.prototype.findMsgRoomIDCreatedMsg = function(roomID,callBack){
+
+    this.model.findOne({ roomID : roomID, msg: {'$ne':'join'} },{peopleID : 1, roomID : 1, msg : 1, created : 1}, {sort:{created: -1}}, function (err, msg) {
+
+    	if (err) 
+            console.error(err);
+        
+        if(callBack)
+            callBack(err,msg);
+        
+    });
+            
+}
 
 MsgModel.prototype.findAllMessages = function(roomID,lastMsgID,callBack){
 

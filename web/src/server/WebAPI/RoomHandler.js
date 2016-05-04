@@ -16,6 +16,7 @@ var Utils = require("../lib/Utils");
 var SocketAPIHandler = require('../SocketAPI/SocketAPIHandler');
 var PeopleModel = require("../Models/PeopleModel");
 var RoomModel = require("../Models/RoomModel");
+var MsgModel = require("../Models/MsgModel");
 var Settings = require("../lib/Settings");
 var Const = require("../const");
 var async = require('async');
@@ -80,6 +81,93 @@ SigninHandler.prototype.attach = function(router){
         
     });
     router.get('/list',function(request,response){
+    	
+    	var peopleID = request.query.peopleID;
+    	
+    	
+    	var roomList = [];
+    		
+		/**
+         * roomを取得
+         * peopleを取得
+         * msgを取得
+         */
+        async.waterfall(
+        		[
+					function (done) {
+        		  		// roomを検索してあれば、ルームIDとメンバーを返す
+                       	RoomModel.findRoomBypeopleID(peopleID,function (err,rooms) {
+                       		
+                       		done(err,rooms);
+                       	});
+                              
+                     },
+                     function (rooms,done) {
+
+						RoomModel.findRoomByrooms(rooms,function (err,rooms) {
+							done(err,rooms);
+						});
+						
+                     },
+                     function (roomList,done) {
+                    	 if (roomList.length > 0) {
+                    		 var rl = [];
+                    		 async.eachSeries(roomList, function(room, next){
+                    			 RoomModel.populatePeople(room,function (err,r) {
+                    				 rl.push(r)
+                    				 next();
+                    			 });
+                    			 
+                    		 }, function complete(err) {
+                    			 done(err,rl);
+                    		 });
+                    	 } else {
+                    		done(null,roomList);
+                     	 }
+                     },
+                     function (roomList, done) {
+                    	 var rs = [];
+                    	 async.eachSeries(roomList, function(room, next){
+                    		 // メッセージからルームIDを取得する
+                    		 MsgModel.findMsgRoomIDCreatedMsg(room.roomID,function (err,msg){
+                    			 if (msg != null) {
+                    				 room.msg = msg.msg;
+                    				 room.created = msg.created;
+                        			 rs.push(room);
+                    			 } else {
+                    				 rs.push(room);
+                    			 }
+                    			 next();
+                    		 });
+                    	 }, function complete(err) {
+                    		 rs.sort(function(a,b){
+                			    if(a.created>b.created) return -1;
+                			    if(a.created < b.created) return 1;
+                			    return 0;
+                    		 });
+                			 done(err,rs);
+                    	 });
+					}
+        		 
+        		 ],
+                function (err, data) {
+                         
+                         if(err){
+                       	  self.setRes(response,Const.httpCodeInternalServerError, "get room list fail");
+                       	  return;
+                         }else{
+                       	  self.setRes(response,Const.httpCodeSucceed,"get room list OK", data);
+                       	  return;
+                         }
+                              
+        		}
+                     
+        		
+        );
+    		
+    	
+    });
+    router.get('/test',function(request,response){
 
          var peopleID = request.query.peopleID;
          // ピープルIDの必須チェック
@@ -112,7 +200,7 @@ SigninHandler.prototype.attach = function(router){
                      function (roomList,done) {
                     	 if (roomList.length > 0) {
                     		 var rl = [];
-                    		 async.each(roomList, function(room, next){
+                    		 async.eachSeries(roomList, function(room, next){
                     			 RoomModel.populatePeople(room,function (err,r) {
                     				 rl.push(r)
                     				 next();

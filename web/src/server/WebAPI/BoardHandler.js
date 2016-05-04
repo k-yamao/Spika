@@ -95,6 +95,32 @@ BoardHandler.prototype.attach = function(router){
 }
      */
     
+    /**
+     * ボードIDでボードを削除する
+     */
+    router.get('/delete/:boardID',function(request,response){
+
+    	var boardID = request.params.boardID;
+    	
+    	// ボードIDチェック
+        if(Utils.isEmpty(boardID)){
+        	self.setRes(response, Const.httpCodeBadRequest, "input error boardID", request.params);
+            return;
+        }
+        
+        // ボードを削除する
+    	BoardModel.removeBoard(boardID, function (err) {
+    		if(err){
+        		self.setRes(response,Const.httpCodeFileNotFound,"remove board fail", boardID);
+            	return;
+            	
+            } else {
+            	self.setRes(response,Const.httpCodeSucceed,"remove board success", boardID);
+            	return;
+            }            
+        });
+        
+    });
     router.get('/list',function(request,response){
         var condition = {
        		deleted    : 0,

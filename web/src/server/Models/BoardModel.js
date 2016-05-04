@@ -52,6 +52,15 @@ BoardModel.prototype.findBoardbyId = function(id,callBack){
             
 }
 
+//ボードIDでボードを削除
+BoardModel.prototype.removeBoard = function(boardID,callBack){
+
+    this.model.remove({ boardID: boardID },function (err) {
+    	callBack(err)
+    });
+            
+}
+
 /**
  * 掲示板を取得
  * @param condition
@@ -164,6 +173,16 @@ BoardModel.prototype.addBoardPeople = function(boards,callBack){
     }else{
         callBack(null,boards);
     }
-    
 }
+BoardModel.prototype.getBoardCount = function(peopleID,callBack){
+	
+	this.model.count({ peopleID: peopleID },function (err, count) {
+    	callBack(err, count)
+    });
+            
+	
+};
+
+
+
 module["exports"] = new BoardModel();

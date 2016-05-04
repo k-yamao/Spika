@@ -18,6 +18,8 @@ var mime = require('mime');
 var SocketAPIHandler = require('../SocketAPI/SocketAPIHandler');
 var PeopleModel = require("../Models/PeopleModel");
 var CounterModel = require("../Models/CounterModel");
+var PickModel = require("../Models/PickModel");
+var BoardModel = require("../Models/BoardModel");
 var Settings = require("../lib/Settings");
 
 var PeopleHandler = function(){
@@ -29,6 +31,175 @@ _.extend(PeopleHandler.prototype,RequestHandlerBase.prototype);
 PeopleHandler.prototype.attach = function(router){
         
     var self = this;
+    
+    
+    /**
+     * パスワードの初期化、認証URLを忘れたときの再送、パスワード変更
+     * mail  : メールアドレス
+     * type 1: パスワードの初期化
+     *      2: パスワード変更
+     *      3: 認証URLを忘れたときの再送
+     */
+    router.get('/change',function(request,response){
+    	
+    	var mail     = '';
+    	var type     = 0;
+    	var password = '';
+
+    	// メールで利用する変数
+    	var  title    = '';
+    	var  bodyHtml = '';
+
+    	
+    	// メールの入力チェック
+        if(!Utils.isEmpty(request.query.mail)){
+        	mail = request.query.mail;
+        } else {
+        	self.setRes(response, Const.httpCodeBadRequest, "input error mail", request.query);
+            return;
+        }
+    	// メールの入力チェック
+        if(!Utils.isEmpty(request.query.type) && (request.query.type == '1' || request.query.type == '2' || request.query.type == '3')){
+        	type = parseInt(request.query.type);
+        	
+        	// パスワード変更の場合はパスワードもチェックする
+        	if (type == 2) {
+        		// パスワードチェック
+	        	if (!Utils.isEmpty(request.query.password)) {
+	        		password = request.query.password;
+	        	} else {
+	        		self.setRes(response, Const.httpCodeBadRequest, "input error password", request.query);
+	                return;
+	        	}
+        	} 
+        } else {
+        	self.setRes(response, Const.httpCodeBadRequest, "input error type", request.query);
+            return;
+        }
+        
+        
+        // ピープルの取得
+        PeopleModel.getPeople(mail,function (err,people) {
+        	
+        	if (people) {
+        		
+        		if (type == 1 || type == 2) {
+        			var upobj = null;
+        			
+		        	if (type == 1) {
+		        		password = Utils.randomString(6, null);
+		        	}
+		        	
+        			people.update({
+		        		password: password,
+		        		updated : Utils.now()
+	        		},{},function(err,peopleResult){
+		                if(err){
+		                	self.setRes(response,Const.httpCodeAccepted,"password update fail", people);
+		                	return;
+		                }else{
+		                	
+		                	if (type == 1) {
+		                		// パスワードの初期化
+		                		title    = Const.mailTitleInitPassword;
+		                		bodyHtml = Const.mailHtmlInitPassword + "<br>パスワード：" + people.password + Const.mailSignature;
+		                	} else {
+		                		// パスワード変更
+		                		title    = Const.mailTitleChangePassword;
+		                		bodyHtml = Const.mailHtmlChangePassword + Const.mailSignature; 
+		                	}
+
+		                	
+							 // メール送信
+							 // SMTPコネクションプールを作成(Gmail)
+							 var smtpTransport = mailer.createTransport("SMTP", {
+								 service: "Gmail",
+								 auth: {
+									 XOAuth2: {
+										user: Const.mailUser, // Your gmail address.
+										clientId: Const.mailClientId,
+										clientSecret: Const.mailClientSecret,
+										refreshToken: Const.mailRefreshToken
+									 }
+								 }
+							 });
+							 // unicode文字でメールを送信
+							 var mailOptions = {
+				            	    from: Const.mailUser, 		// sender address
+				            	    to: mail,					// list of receivers
+				            	    subject: title, // Subject line
+				            	    html: bodyHtml 			// html body
+							 }
+							 
+							 
+							 //console.log(mailOptions);
+							 // 先ほど宣言したトランスポートオブジェクトでメールを送信
+							 smtpTransport.sendMail(mailOptions, function (error, mailResponse) {
+								 if (error) {
+									 self.setRes(response,Const.httpCodeInternalServerError,"password update fail", error);
+				            	 } else {
+				            		 self.setRes(response,Const.httpCodeSucceed,"password update ok", people);
+				            	 }
+				            	    // 他の送信処理はなければ、下記のコメントを解除して、トランスポートオブジェクトをクローズしてください。
+				            	 smtpTransport.close(); // shut down the connection pool, no more messages
+				                 return;
+							 });
+		                }                
+	        		});
+
+        		} else {
+        			
+        			 var authURL = Const.mailAuthUrl + people.token;
+					 var bodyHtml = Const.mailHtmlAuth + '<br><a href="' + authURL +'">' + authURL + '</a>' + Const.mailSignature;
+					 
+					 // メール送信
+					 // SMTPコネクションプールを作成(Gmail)
+					 var smtpTransport = mailer.createTransport("SMTP", {
+						 service: "Gmail",
+						 auth: {
+							 XOAuth2: {
+								user: Const.mailUser, // Your gmail address.
+								clientId: Const.mailClientId,
+								clientSecret: Const.mailClientSecret,
+								refreshToken: Const.mailRefreshToken
+							 }
+						 }
+					 });
+					 // unicode文字でメールを送信
+					 var mailOptions = {
+		            	    from: Const.mailUser, 		// sender address
+		            	    to: people.mail,			// list of receivers
+		            	    subject: Const.mailTitleAuth, // Subject line
+		            	    html: bodyHtml 			// html body
+					 }
+					 //console.log(mailOptions);
+					 // 先ほど宣言したトランスポートオブジェクトでメールを送信
+					 smtpTransport.sendMail(mailOptions, function (error, mailResponse) {
+						 if (error) {
+							 self.setRes(response,Const.httpCodeFileNotFound,"send mail err", error);
+		            	 } else {
+		            		 self.setRes(response,Const.httpCodeSucceed,"auth URL ok", people);
+		            	 }
+		            	 // 他の送信処理はなければ、下記のコメントを解除して、トランスポートオブジェクトをクローズしてください。
+		            	 smtpTransport.close(); // shut down the connection pool, no more messages
+		            	 
+		              	 return;
+					 });
+        		}
+	            
+        	
+        	} else {
+        		self.setRes(response,Const.httpCodeFileNotFound,"not found people", people);
+        		return;
+        	}
+        	
+        	
+        	
+        });
+        
+      
+    	
+    });
 
     /**
      * @api {get} /people/list/:roomID  Get List of Users in room
@@ -52,88 +223,129 @@ PeopleHandler.prototype.attach = function(router){
 		    }
 		}
     */
-    router.get('/:peopleID',function(request,response){
+    /**
+     * ピープルIDでピープル情報を削除する
+     */
+    router.get('/delete/:peopleID',function(request,response){
         var peopleID = request.params.peopleID;
 
-        PeopleModel.findPeopleById(peopleID,function (err,people) {
-            
-            if(people != null){
-            	var setting = {
-            		    //SMTPサーバーを使う場合
-            		    host: 'smtp.gmail.com',
-            		    auth: {
-            		        user: 'info@local-c.com',
-            		        pass: 'localcolor',
-            		        port: '587'
-            		    }
-            	};
-            	
-            	//メールの内容
-            	var mailOptions = {
-            	    from: 'info@local-c.com',
-            	    to: 'yamao1983@gmail.com',
-            	    subject: 'メールの件名',
-            	    html: 'メールの内容' //HTMLタグが使えます
-            	};
-            	//SMTPの接続
-            	var smtp = mailer.createTransport('SMTP', setting);
+        PeopleModel.removePeople(peopleID,function (err,people) {
 
-            	//メールの送信
-            	smtp.sendMail(mailOptions, function(err, res){
-            	    //送信に失敗したとき
-            	    if(err){
-            	        console.log(err);
-            	    //送信に成功したとき
-            	    }else{
-            	        console.log('Message sent: ' + res.message);
-            	    }
-            	    //SMTPの切断
-            	    smtp.close();
-            	});
+        	if(err){
+        		self.setRes(response,Const.httpCodeFileNotFound,"remove people fail", peopleID);
+            	return;
             	
-            	self.setRes(response,Const.httpCodeSucceed,"get people success", people);
-
             } else {
-            	self.setRes(response,Const.httpCodeFileNotFound,"not people", peopleID);
+            	self.setRes(response,Const.httpCodeSucceed,"remove people success", peopleID);
+            	return;
             }
               
         });
-        //self.successResponse(response,peopleID);
         
     });
-    
+    /**
+     * ピープルIDでピープル情報を取得する
+     */
+    router.get('/count/:peopleID',function(request,response){
+        var peopleID = request.params.peopleID;
+        
+        var counts = {
+        		boardCount   : 0,
+        		pickCount    : 0,
+        		pickerCount  : 0
+        }
+        async.waterfall([
+                         function (done) {
+                        	 
+                        	 BoardModel.getBoardCount(peopleID,function (err,count) {
+
+                        		 counts.boardCount = count;
+                        		 done();
+                              
+                             });
+                        	 
+                         },
+                         function (done) {
+                        	 PickModel.getPickCount(peopleID,function (err,count) {
+
+                        		 counts.pickCount = count;
+                        		 done();
+                              
+                             });
+                         },
+                         function (done) {
+                        	 PickModel.getPickerCount(peopleID,function (err,count) {
+
+                        		 counts.pickerCount = count;
+                        		 done();
+                              
+                             });
+                        	 
+                         }
+                         ],
+                         function (err) {
+                             
+                             if(err){
+                             	self.setRes(response,Const.httpCodeInternalServerError,"people count fail", err);
+                             
+                             }else{
+                                 
+                                 self.setRes(response,Const.httpCodeSucceed,"people count ok", counts);
+                                 
+                             }
+                                  
+                         }
+        );
+        
+        
+    });
+    /**
+     * ピープルIDでピープル情報を取得する
+     */
+    router.get('/:peopleID',function(request,response){
+        var peopleID = request.params.peopleID;
+        
+        PeopleModel.findPeopleById(peopleID,function (err,people) {
+            
+            if(people != null){
+            	self.setRes(response,Const.httpCodeSucceed,"get people success", people);
+            	return;
+            } else {
+            	self.setRes(response,Const.httpCodeFileNotFound,"not people", peopleID);
+            	return;
+            }
+              
+        });
+        
+    });
+    /**
+     * サインインする
+     */
     router.post('/signin',function(request,response){
         var mail     = request.body.mail;
         var password = request.body.password;
         
         PeopleModel.getPeople(mail,function (err,people) {
             
-        	
-            if(people != null){
-            	
-            	if (people.password == password) {
-            		self.setRes(response,Const.httpCodeSucceed,"login success", people);
-            	} else {
-            		self.setRes(response,Const.httpCodeFileNotFound,"login fail", request.body);
-            	}
-
-            } else {
-            	
-            	self.setRes(response,Const.httpCodeInternalServerError,"server error", err);
-            }
-              
+        	 if(err){
+             	self.setRes(response,Const.httpCodeAccepted,"people　geet fail", people);
+        	 } else {
+	            if(people != null){
+	            	
+	            	if (people.password == password) {
+	            		self.setRes(response,Const.httpCodeSucceed,"login success", people);
+	            		return;
+	            	} else {
+	            		self.setRes(response,Const.httpCodeFileNotFound,"login fail", request.body);
+	            		return;
+	            	}
+	
+	            } else {
+	            	self.setRes(response,Const.httpCodeInternalServerError,"server error", err);
+	            	return;
+	            }
+        	 }
         });
-        //self.successResponse(response,peopleID);
-        
-    });
-    router.post('/test',function(request,response){
-    	
-    	
-    	self.setRes(response, Const.httpCodeSucceed, "OK", request.body);
-    	
-    	return;
-    	
-    	
     });
     
     
@@ -198,16 +410,57 @@ PeopleHandler.prototype.attach = function(router){
 						// 新規登録
 						newPeople.save(function(err,people){
 							 if(err){            			 
-		            			 self.setRes(response,Const.httpCodeInternalServerError,"people sabe fail", err);
+		            			 self.setRes(response,Const.httpCodeInternalServerError,"people save fail", err);
+		            			 return;
 							 } else {
-								 self.setRes(response,Const.httpCodeSucceed,"signup ok", people);
+								 // 新規登録に成功したらメールを送信する
+								 
+								 var authURL = Const.mailAuthUrl + people.token;
+								 var bodyTextHTML = Const.mailHtmlAuth + '<br><a href="' + authURL +'">' + authURL + '</a>' + Const.mailSignature;
+								 
+								 // メール送信
+								 // SMTPコネクションプールを作成(Gmail)
+								 var smtpTransport = mailer.createTransport("SMTP", {
+									 service: "Gmail",
+									 auth: {
+										 XOAuth2: {
+											user: Const.mailUser, // Your gmail address.
+											clientId: Const.mailClientId,
+											clientSecret: Const.mailClientSecret,
+											refreshToken: Const.mailRefreshToken
+										 }
+									 }
+								 });
+								 // unicode文字でメールを送信
+								 var mailOptions = {
+					            	    from: Const.mailUser, 		// sender address
+					            	    to: people.mail,			// list of receivers
+					            	    subject: "Street 仮登録完了", // Subject line
+					            	    html: bodyTextHTML 			// html body
+								 }
+								 //console.log(mailOptions);
+								 // 先ほど宣言したトランスポートオブジェクトでメールを送信
+								 smtpTransport.sendMail(mailOptions, function (error, mailResponse) {
+									 if (error) {
+										 self.setRes(response,Const.httpCodeInternalServerError,"signup mail fail", error);
+					            	 } else {
+					            	     self.setRes(response,Const.httpCodeSucceed,"signup ok", people);
+					            	 }
+					            	    // 他の送信処理はなければ、下記のコメントを解除して、トランスポートオブジェクトをクローズしてください。
+					            	 smtpTransport.close(); // shut down the connection pool, no more messages
+					            	 
+					            	 return;
+								 });
+							 
+								 
+								
 							 }
 						});
             		 }
             	});
-            } else {
-            	
+            } else {            	
             	self.setRes(response,Const.httpCodeAccepted,"signup fail. Signed people", people);
+            	return;
             }
         });
     });
@@ -221,8 +474,7 @@ PeopleHandler.prototype.attach = function(router){
     router.get('/auth/:token',function(request,response){
 
     	var token =request.params.token;
-    	
-    	console.log(token);
+
     	// 登録ずみかチェックのためpeopleコレクションを取得してみる
         PeopleModel.findPeopleByToken(token,function (err,people) {
 
@@ -231,22 +483,22 @@ PeopleHandler.prototype.attach = function(router){
 	        		auth : 1,
 	        		updated : Utils.now()
         		},{},function(err,peopleResult){
-            
 	                if(err){
 	                	self.setRes(response,Const.httpCodeAccepted,"auth fail", people);
+	                	return;
 	                }else{
 	                	self.setRes(response,Const.httpCodeSucceed,"auth ok", people);
+	                	return;
 	                }                
         		});
-
         	} else {
-        		
+        		self.setRes(response,Const.httpCodeFileNotFound,"not found people", people);
+        		return;
         	}
         });
     });
     /**
      * プロフィール登録でピープル情報を更新するAPI
-     * 
      */
     router.post('/profile',function(request,response){
     	var peopleID  = request.body.peopleID;
@@ -258,9 +510,6 @@ PeopleHandler.prototype.attach = function(router){
     	var city     = request.body.city;
     	var appeal   = request.body.appeal;
     	var phrase   = request.body.phrase;
-    	
-    	
-    	
     	
 		/*********************************************
 		 * TODOいつか入力チェックを実装する
@@ -301,6 +550,9 @@ PeopleHandler.prototype.attach = function(router){
             }
         });
     });
+   
+    
+
 
 }
 

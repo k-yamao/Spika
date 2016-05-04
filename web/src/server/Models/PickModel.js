@@ -121,7 +121,7 @@ PickModel.prototype.getPickCount = function(peopleID,callBack){
  * @param mail
  * @param callBack
  */
-PickModel.prototype.getPickCount = function(peoplePickID,callBack){
+PickModel.prototype.getPickerCount = function(peoplePickID,callBack){
 
 	this.model.where({ 'peoplePickID': peoplePickID }).count(function (err, count) {
 		if (err) 

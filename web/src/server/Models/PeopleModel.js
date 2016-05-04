@@ -153,5 +153,18 @@ PeopleModel.prototype.findPeopleInternalId = function(aryId,callBack){
                 
 }
 
+/**
+ * ピープルIDでピープルオブジェクトを削除
+ * @param aryId
+ * @param callBack
+ */
+PeopleModel.prototype.removePeople = function(peopleID,callBack){
+        
+	this.model.remove({ peopleID: peopleID},function (err) {
+            callBack(err);
+    });
+            
+}
+
 
 module["exports"] = new PeopleModel();
