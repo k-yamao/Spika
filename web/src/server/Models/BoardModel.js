@@ -27,6 +27,10 @@ BoardModel.prototype.init = function(){
         roomID     : { type: String, index: true },
         title      : String,
         desc       : String,
+        sex        : String,
+        pref       : String,
+        city       : String,
+        birthDay   : String,
         created    : Number,
         updated    : Number,
         deleted    : Number
@@ -107,15 +111,16 @@ BoardModel.prototype.findBoards = function(condition, offset, limit, callBack){
         });
         
     }else{
-
     	
     	var query = null;
         if (offset > 0) {
         	query = this.model.find(condition).sort({'created': 'desc'}).skip(offset).limit(limit);
         } else {
+        	//
         	query = this.model.find(condition).sort({'created': 'desc'}).limit(limit); 
         }
         query.exec(function(err,data){
+        	
             if (err) return console.error(err);
             if(callBack)
                 callBack(err,data)

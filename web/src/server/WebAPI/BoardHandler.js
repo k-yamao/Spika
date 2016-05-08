@@ -171,7 +171,16 @@ BoardHandler.prototype.attach = function(router){
         if(!Utils.isEmpty(request.query.del)){
         	condition.del = request.query.del;
         }
-
+        
+        
+        // 年齢幅
+        if(!Utils.isEmpty(request.query.age)){
+        	var age = Utils.ageCast(request.query.age);
+        	condition.birthDay = {
+        			$gte: age[0],	
+        			$lte: age[1]
+        	}
+        }
         async.waterfall([
         
             function (done) {
@@ -249,6 +258,10 @@ BoardHandler.prototype.attach = function(router){
 	   		         nicnameTo : nicnameTo,
 	   		         inline    : inline,
 	   		         desc      : desc,
+	   		         sex       : null,
+	   		         pref      : null,
+	   		         city      : null,
+	   		         birthDay  : null,
 	   		         created   : Utils.now(),
 	   		         updated   : Utils.now(),
 	   		         deleted   : 0
@@ -259,9 +272,12 @@ BoardHandler.prototype.attach = function(router){
 	   		    	if(err){ 
 	   		    		self.setRes(response,Const.httpCodeFileNotFound,"board fail peopleID none", err);
 	   		    	} else {
-	   		    		newBoard.people = people._id
-	   		    		newBoard.peopleID = people.peopleID
-
+	   		    		newBoard.people   = people._id;
+	   		    		newBoard.peopleID = people.peopleID;
+	   		    		newBoard.sex      = people.sex
+	   		    		newBoard.pref     = people.pref;
+	   		    		newBoard.city     = people.city;
+	   		    		newBoard.birthDay = people.birthDay;
 		   		    	newBoard.save(function(err,board){
 						    if(err) throw err;
 						    self.setRes(response,Const.httpCodeSucceed,"new board ok", board);

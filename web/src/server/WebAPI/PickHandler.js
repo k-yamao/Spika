@@ -126,7 +126,7 @@ SigninHandler.prototype.attach = function(router){
                     	 if (picks.length > 0) {
                     		 
                 			 PickModel.populatePick(picks,function (err,picks) {
-                				 console.log(picks);
+                				 //console.log(picks);
                 				 done(null,picks);
 							
                 			 });
