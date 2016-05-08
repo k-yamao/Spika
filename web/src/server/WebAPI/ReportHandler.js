@@ -17,15 +17,15 @@ var mime = require('mime');
 var SocketAPIHandler = require('../SocketAPI/SocketAPIHandler');
 var PeopleModel = require("../Models/PeopleModel");
 var CounterModel = require("../Models/CounterModel");
-var BoardModel = require("../Models/BoardModel");
+var ReportModel = require("../Models/ReportModel");
 
-var BoardHandler = function(){
+var ReportHandler = function(){
     
 }
 
-_.extend(BoardHandler.prototype,RequestHandlerBase.prototype);
+_.extend(ReportHandler.prototype,RequestHandlerBase.prototype);
 
-BoardHandler.prototype.attach = function(router){
+ReportHandler.prototype.attach = function(router){
         
     var self = this;
 
@@ -185,13 +185,11 @@ BoardHandler.prototype.attach = function(router){
     	
     	// 投稿内容
     	var desc       = request.body.desc;
-    	var boardIDTo  = request.body.boardIDTo;
+    	var boardID    = request.body.boardID;
     	var peopleID   = request.body.peopleID;
-    	var peopleIDTo = request.body.peopleIDTo;
-    	var inline     = request.body.inline;
-    	var nicnameTo  = request.body.nicnameTo;
-    	
-    	
+    	var desc       = request.body.desc;
+    	var type       = request.body.type;
+
     	
     	// 投稿内容チェック
         if(Utils.isEmpty(desc)){
@@ -205,42 +203,29 @@ BoardHandler.prototype.attach = function(router){
         }
         
         // カウンターからボードIDを取得する
-    	CounterModel.getNewId("boards", function (err, counter) {
+    	CounterModel.getNewId("reports", function (err, counter) {
     		
     		if(err){            			 
    			 	self.setRes(response,Const.httpCodeInternalServerError,"board fail peopleID seq", err);
    		 	} else {		
    		 		
-   		 	
 	   		 	// Defining a schema
-	   		     var newBoard = new DatabaseManager.boardModel({
-	   		     	 boardID   : counter.seq,
-	   		         people    : null,
-	   		         peopleID  : peopleID,
-	   		         boardIDTo : boardIDTo,
-	   		         peopleTo  : null,
-	   		         peopleIDTo: peopleIDTo,
-	   		         nicnameTo : nicnameTo,
-	   		         inline    : inline,
-	   		         desc      : desc,
-	   		         created   : Utils.now(),
-	   		         updated   : Utils.now(),
-	   		         deleted   : 0
+	   		     var newReport = new DatabaseManager.reportModel({
+	   		    	reportID  : counter.seq,
+	   		    	peopleID  : peopleID,
+	   		    	boardID   : boardID,
+	   		    	desc      : desc,
+	   		    	type      : type,
+	   		    	created   : Utils.now(),
+	   		        updated   : Utils.now()
 	   		     });
-	   		     
-	   		     PeopleModel.findPeopleById(peopleID,function(err,people){
-
-	   		    	if(err){ 
-	   		    		self.setRes(response,Const.httpCodeFileNotFound,"board fail peopleID none", err);
-	   		    	} else {
-	   		    		newBoard.people = people._id
-	   		    		newBoard.peopleID = people.peopleID
-
-		   		    	newBoard.save(function(err,board){
-						    if(err) throw err;
-						    self.setRes(response,Const.httpCodeSucceed,"new board ok", board);
-						});
-	   		    	}
+	   		     newReport.save(function(err,report){
+				    if(err) {
+				    	self.setRes(response, Const.httpCodeInternalServerError, "report save err", err);
+				    } else {
+				    	self.setRes(response,Const.httpCodeSucceed,"new board ok", report);	
+				    }
+				    
 	   		     });
    		 		
    		 	}
@@ -252,5 +237,5 @@ BoardHandler.prototype.attach = function(router){
 
 }
 
-new BoardHandler().attach(router);
+new ReportHandler().attach(router);
 module["exports"] = router;

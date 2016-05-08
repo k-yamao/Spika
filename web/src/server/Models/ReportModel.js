@@ -16,8 +16,7 @@ ReportModel.prototype.init = function(){
     // Defining a schema
     var reportSchema = new mongoose.Schema({
     	reportID      : { type: String, index: true },
-    	reportPeopleID: String,
-    	boardID       : String,
+    	peopleID      : String,
     	boardID       : String,
     	desc          : String,
     	type          : String,
