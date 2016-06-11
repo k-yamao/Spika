@@ -78,7 +78,7 @@ var SendMessage = {
                     if(!Utils.isEmpty(param.localID))
                         messageObj.localID = param.localID;
                                         
-                    console.log(message);
+                    //console.log(message);
                     SocketAPIHandler.io.of(Settings.options.socketNameSpace).in(param.roomID).emit('newMessage', data[0]);
                     Observer.send(this, Const.notificationSendMessage, data[0]);
                     

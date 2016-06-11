@@ -30,6 +30,16 @@ RoomModel.prototype.init = function(){
         
 }
 
+
+//ルームIDでルームを削除
+RoomModel.prototype.removeRoom = function(roomID,callBack){
+
+    this.model.remove({ roomID: roomID },function (err) {
+    	callBack(err)
+    });
+            
+}
+
 RoomModel.prototype.findRoomById = function(id,callBack){
 
     this.model.findOne({ _id: id },function (err, people) {

@@ -19,6 +19,7 @@ var Settings = require("../lib/Settings");
 
 var FileDownloadHandler = function(){
     
+	
 }
 
 _.extend(FileDownloadHandler.prototype,RequestHandlerBase.prototype);

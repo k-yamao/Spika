@@ -16,7 +16,7 @@
     Config.dbCollectionPrefix = "spika_";
     
     Config.uploadDir = 'public/uploads/';
-    Config.sendAttendanceMessage = true;
+    Config.sendAttendanceMessage = false;
     
 
     // Exports ----------------------------------------------

@@ -29,6 +29,8 @@ var SendMsg = {
                 created: Utils.now()                   
             };
             
+            //console.log(param);
+            
             if(!Utils.isEmpty(param.file)){
                 
                 objMessage.file = {
@@ -66,6 +68,7 @@ var SendMsg = {
            
             newMsg.save(function(err,msg){
 
+            	
                 if(err) {
                     if(onError)
                         onError(err);

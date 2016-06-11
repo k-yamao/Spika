@@ -27,6 +27,7 @@ FileUploadHandler.prototype.attach = function(router){
         
     var self = this;
     
+    
     /**
      * @api {post} /file/upload  Upload File 
      * @apiName Upload File
@@ -55,6 +56,7 @@ FileUploadHandler.prototype.attach = function(router){
         
         var form = new formidable.IncomingForm();
         
+       
         async.waterfall([
             
             function (done) {
@@ -93,8 +95,10 @@ FileUploadHandler.prototype.attach = function(router){
             },
             function (result,done) {
                 
+            	 //console.log(request);
+
+                 
                 form.parse(request, function(err, fields, files) {
-            
                     if(!files.file){
                         
                         self.successResponse(response,Const.resCodeFileUploadNoFile);
@@ -119,7 +123,8 @@ FileUploadHandler.prototype.attach = function(router){
                                     
                 var tempPath = file.path;
                 var fileName = file.name;
-                
+
+
                 // save to database
                 var newFile = new DatabaseManager.fileModel({
                     name:fileName,
@@ -165,8 +170,9 @@ FileUploadHandler.prototype.attach = function(router){
             function (result,done){
                 
                 var file = result.file;
-                             
+                //console.log(result);
                 if(file.type.indexOf("jpeg") > -1 ||
+                		
                     file.type.indexOf("gif") > -1 ||
                     file.type.indexOf("png") > -1){
                     
@@ -201,7 +207,6 @@ FileUploadHandler.prototype.attach = function(router){
                                     done(err,result);
                                 
                                 });
-
                             },
                             function (err) {
                                 // ignore thubmnail error
@@ -215,8 +220,7 @@ FileUploadHandler.prototype.attach = function(router){
                     done(null,result);
                     
                 }
-
-                
+               
             },
                
             

@@ -80,6 +80,33 @@ SigninHandler.prototype.attach = function(router){
         });
         
     });
+    /**
+     * ボードIDでボードを削除する
+     */
+    router.get('/delete/:roomID',function(request,response){
+
+    	var roomID = request.params.roomID;
+    	
+    	// ルームIDチェック
+        if(Utils.isEmpty(roomID)){
+        	self.setRes(response, Const.httpCodeBadRequest, "input error roomID", request.params);
+            return;
+        }
+        
+        // ボードを削除する
+        RoomModel.removeRoom(roomID, function (err) {
+    		if(err){
+        		self.setRes(response,Const.httpCodeFileNotFound,"remove room fail", roomID);
+            	return;
+            	
+            } else {
+            	self.setRes(response,Const.httpCodeSucceed,"remove room success", roomID);
+            	return;
+            }            
+        });
+    	
+        
+    });
     router.get('/list',function(request,response){
     	
     	var peopleID = request.query.peopleID;

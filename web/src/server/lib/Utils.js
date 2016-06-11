@@ -83,7 +83,6 @@ var Utils = {
 	 * 1：20030508 < birthDay && 20030508 >= birthDay
 	 */
     ageCast : function(ageParam) {
-    	
     	var age1 = null;  
     	var age2 = null;
     	ageParam = parseInt(ageParam);

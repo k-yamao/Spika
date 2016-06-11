@@ -119,6 +119,7 @@ BoardHandler.prototype.attach = function(router){
             	return;
             }            
         });
+    	
         
     });
     router.get('/list',function(request,response){
