@@ -20,6 +20,7 @@ MsgModel.prototype.init = function(){
         peopleID: { type: String, index: true },
         localID : { type: String, index: true },
         roomID  : { type: String, index: true },
+        status  : Number,
         type    : Number,
         msg     : String,
         image   : String,
@@ -122,7 +123,7 @@ MsgModel.prototype.findMsgRoomID = function(peopleID,callBack){
  */
 MsgModel.prototype.findMsgRoomIDCreatedMsg = function(roomID,callBack){
 
-    this.model.findOne({ roomID : roomID, msg: {'$ne':'join'} },{peopleID : 1, roomID : 1, msg : 1, created : 1}, {sort:{created: -1}}, function (err, msg) {
+    this.model.findOne({ roomID : roomID, msg: {'$ne':'join'} },{peopleID : 1, roomID : 1, msg : 1, status : 1, created : 1}, {sort:{created: -1}}, function (err, msg) {
 
     	if (err) 
             console.error(err);
@@ -298,6 +299,16 @@ MsgModel.prototype.populateMsgs = function(msgs,callBack){
     }
     
 }
+MsgModel.prototype.updateMsgsStatus = function(roomID, peopleID, callBack){
+	
+    this.model.update({ roomID: roomID, peopleID: {'$ne':peopleID}, status: 0 },{ status: 1 }, { multi: true }, function (err, numberAffected, raw) {
 
+    	if (err) 
+            console.error(err);
+        
+        if(callBack)
+            callBack(err,numberAffected);
+    });
+}
     
 module["exports"] = new MsgModel();

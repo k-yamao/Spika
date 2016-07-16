@@ -24,6 +24,7 @@ var SendMsg = {
                 roomID   : param.roomID,
                 msg      : param.msg,
                 localID  : param.localID,
+                status   : 0,
                 type     : param.type,
                 file     : null,
                 created: Utils.now()                   

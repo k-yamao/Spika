@@ -72,7 +72,7 @@
     Const.mailHtmlChangePassword  =  "<p>Streetのパスワード変更が完了しました。</p>";
     Const.mailHtmlInitPassword    =  "<p>Streetのパスワードを初期化しました。</p>";
     Const.mailHtmlAuth            =  "<p>URLにアクセスして登録を完了させてください。</p>";
-    Const.mailAuthUrl             =  "http://street.local-c.com/auth/?token=";
+    Const.mailAuthUrl             =  "http://street.local-c.com/auth.php?token=";
     
     
     

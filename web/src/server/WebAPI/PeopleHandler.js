@@ -102,7 +102,7 @@ PeopleHandler.prototype.attach = function(router){
 		                	if (type == 1) {
 		                		// パスワードの初期化
 		                		title    = Const.mailTitleInitPassword;
-		                		bodyHtml = Const.mailHtmlInitPassword + "<br>パスワード：" + people.password + Const.mailSignature;
+		                		bodyHtml = Const.mailHtmlInitPassword + "<br>パスワード：" + password + Const.mailSignature;
 		                	} else {
 		                		// パスワード変更
 		                		title    = Const.mailTitleChangePassword;
@@ -138,7 +138,7 @@ PeopleHandler.prototype.attach = function(router){
 								 if (error) {
 									 self.setRes(response,Const.httpCodeInternalServerError,"password update fail", error);
 				            	 } else {
-				            		 self.setRes(response,Const.httpCodeSucceed,"password update ok", people);
+				            		 self.setRes(response,Const.httpCodeSucceed,"password update ok", peopleResult);
 				            	 }
 				            	    // 他の送信処理はなければ、下記のコメントを解除して、トランスポートオブジェクトをクローズしてください。
 				            	 smtpTransport.close(); // shut down the connection pool, no more messages
@@ -435,13 +435,14 @@ PeopleHandler.prototype.attach = function(router){
 								 var mailOptions = {
 					            	    from: Const.mailUser, 		// sender address
 					            	    to: people.mail,			// list of receivers
-					            	    subject: "Street 仮登録完了", // Subject line
+					            	    subject: Const.mailTitleAuth, // Subject line
 					            	    html: bodyTextHTML 			// html body
 								 }
 								 //console.log(mailOptions);
 								 // 先ほど宣言したトランスポートオブジェクトでメールを送信
 								 smtpTransport.sendMail(mailOptions, function (error, mailResponse) {
 									 if (error) {
+										 console.log(error);
 										 self.setRes(response,Const.httpCodeInternalServerError,"signup mail fail", error);
 					            	 } else {
 					            	     self.setRes(response,Const.httpCodeSucceed,"signup ok", people);

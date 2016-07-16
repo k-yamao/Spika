@@ -144,6 +144,36 @@ MessageListHandler.prototype.attach = function(router){
         );
         
     });
+    
+    /**
+     * メッセージを既読にする（msg.status = 1　にする）
+     */
+    router.get('/read/:roomID/:peopleID',function(request,response){
+    	var roomID = request.params.roomID;
+        var peopleID = request.params.peopleID;
+       
+        if(Utils.isEmpty(roomID)){
+        	self.setRes(response,Const.httpCodeFileNotFound,"input roomID error", request);
+            return;
+        }
+        if(Utils.isEmpty(peopleID)){
+        	self.setRes(response,Const.httpCodeFileNotFound,"input peopleID error", request);
+            return;
+        }
+        MsgModel.updateMsgsStatus(roomID, peopleID, function (err,data) {
+            
+        	if(err){
+                self.setRes(response,Const.httpCodeInternalServerError,"server error", err);
+            
+            }else{
+            	self.setRes(response,Const.httpCodeSucceed,"msg list success", data);
+            }
+
+        });
+        
+        
+        
+    });
 
 }
 

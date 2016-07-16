@@ -268,7 +268,11 @@ RoomModel.prototype.findRooms = function(peopleID,lastRoomID,limit,callBack){
     }
 
 }
-
+/**
+ * ルームからピープル情報を取得してセットして返す
+ * @param room
+ * @param callBack
+ */
 RoomModel.prototype.populatePeople = function(room,callBack){
 	var peoples = room.peoples;
     if(!_.isArray(peoples)){
